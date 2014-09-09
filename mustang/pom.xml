@@ -2,9 +2,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.mustangproject.ZUGFeRD</groupId>
+  <groupId>com.seeburger.ZUGFeRD</groupId>
   <artifactId>mustang</artifactId>
-  <version>1.1.1alpha</version>
+  <version>1.1.1alpha.SEE1-SNAPSHOT</version>
   
 	<repositories>
 		<repository>
@@ -17,6 +17,12 @@
 
   <name>mustang</name>
   <url>http://maven.apache.org</url>
+  
+  <scm>
+    <connection>scm:git:git@github.com:seeburger-ag/PDFA3.git</connection>
+    <developerConnection>scm:git:git@github.com:seeburger-ag/PDFA3.git</developerConnection>
+    <url>scm:git:git@github.com:seeburger-ag/PDFA3.git</url>
+  </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -55,4 +61,16 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  
+    <!-- SEEBURGER repository changes -->
+ <distributionManagement>
+    <repository>
+        <id>release</id>
+        <url>http://repo.seeburger.de/archiva/repository/release/</url>
+    </repository>
+    <snapshotRepository>
+        <id>snapshot</id>
+        <url>http://repo.seeburger.de/archiva/repository/snapshot/</url>
+    </snapshotRepository>
+ </distributionManagement>
 </project>
