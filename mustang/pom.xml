@@ -23,6 +23,9 @@
   </properties>
 
   <build>
+
+    <testSourceDirectory>${project.basedir}/src/notestdirwanted_fails</testSourceDirectory>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
