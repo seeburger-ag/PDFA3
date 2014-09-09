@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.rayman2200</groupId>
+	<groupId>com.seeburger.rayman2200</groupId>
 	<artifactId>pdfa3</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1.SEE1-SNAPSHOT</version>
 
 	<repositories>
 		<repository>
@@ -11,6 +11,12 @@
 			<url>http://repository.apache.org/content/groups/snapshots</url>
 		</repository>
 	</repositories>
+	
+ 	<scm>
+		<connection>scm:git:git@github.com:seeburger-ag/PDFA3.git</connection>
+		<developerConnection>scm:git:git@github.com:seeburger-ag/PDFA3.git</developerConnection>
+		<url>scm:git:git@github.com:seeburger-ag/PDFA3.git</url>
+	</scm>
 
 	<dependencies>
 		<dependency>
@@ -40,4 +46,16 @@
 			</plugin>
 		</plugins>
 	</build>
+	
+ 	<!-- SEEBURGER repository changes -->
+	<distributionManagement>
+	<repository>
+		<id>release</id>
+		<url>http://repo.seeburger.de/archiva/repository/release/</url>
+		</repository>
+	<snapshotRepository>
+    	<id>snapshot</id>
+        <url>http://repo.seeburger.de/archiva/repository/snapshot/</url>
+        </snapshotRepository>
+	</distributionManagement>
 </project>
