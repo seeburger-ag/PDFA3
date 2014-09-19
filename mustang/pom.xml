@@ -3,20 +3,20 @@
 
   <groupId>com.seeburger.ZUGFeRD</groupId>
   <artifactId>mustang</artifactId>
-  <version>1.1.1alpha.SEE1</version>
-  
+  <version>1.1.1alpha.SEE2-SNAPSHOT</version>
+
 	<repositories>
 		<repository>
 			<id>apache-snapshot</id>
 			<url>http://repository.apache.org/content/groups/snapshots</url>
 		</repository>
 	</repositories>
-  
+
   <packaging>jar</packaging>
 
   <name>mustang</name>
   <url>http://maven.apache.org</url>
-  
+
   <scm>
     <connection>scm:git:git@github.com:seeburger-ag/PDFA3.git</connection>
     <developerConnection>scm:git:git@github.com:seeburger-ag/PDFA3.git</developerConnection>
@@ -32,6 +32,7 @@
     <testSourceDirectory>${project.basedir}/src/notestdirwanted_fails</testSourceDirectory>
 
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -41,10 +42,19 @@
           <target>1.5</target>
         </configuration>
       </plugin>
+
+     <plugin>
+	      <groupId>org.apache.maven.plugins</groupId>
+	      <artifactId>maven-release-plugin</artifactId>
+	      <version>2.4.2</version>
+	</plugin>
+
+
     </plugins>
   </build>
+
   <dependencies>
-   
+
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
@@ -60,7 +70,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
     <!-- SEEBURGER repository changes -->
  <distributionManagement>
     <repository>
