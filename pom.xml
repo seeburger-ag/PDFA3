@@ -11,7 +11,7 @@
 			<url>http://repository.apache.org/content/groups/snapshots</url>
 		</repository>
 	</repositories>
-	
+
  	<scm>
 		<connection>scm:git:git@github.com:seeburger-ag/PDFA3.git</connection>
 		<developerConnection>scm:git:git@github.com:seeburger-ag/PDFA3.git</developerConnection>
@@ -22,7 +22,7 @@
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>2.0.0-SNAPSHOT</version>
+			<version>1.8.6</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -46,7 +46,7 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
  	<!-- SEEBURGER repository changes -->
 	<distributionManagement>
 	<repository>
