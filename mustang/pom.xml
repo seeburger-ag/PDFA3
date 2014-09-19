@@ -3,7 +3,7 @@
 
   <groupId>com.seeburger.ZUGFeRD</groupId>
   <artifactId>mustang</artifactId>
-  <version>1.1.3alpha.SEE2-SNAPSHOT</version>
+  <version>1.1.1alpha.SEE1</version>
   
 	<repositories>
 		<repository>
