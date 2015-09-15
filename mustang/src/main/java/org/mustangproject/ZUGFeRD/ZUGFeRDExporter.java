@@ -456,7 +456,7 @@ public class ZUGFeRDExporter {
 		COSDictionary dict = fs.getCOSDictionary();
 		// Relation "Source" for linking with eg. catalog
 		dict.setName("AFRelationship", "Alternative"); // as defined in Zugferd standard //$NON-NLS-1$ //$NON-NLS-2$
-
+        dict.setString("Desc", filename);
 		dict.setString("UF", filename); //$NON-NLS-1$
 
 		if (zugferdData == null) // XML ZUGFeRD data not set externally, needs to be built
