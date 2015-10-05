@@ -16,14 +16,23 @@
  */
 package pdfbox;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.GregorianCalendar;
+
+import javax.xml.transform.TransformerException;
 
 import org.apache.jempbox.xmp.XMPMetadata;
+import org.apache.jempbox.xmp.XMPSchemaBasic;
+import org.apache.jempbox.xmp.XMPSchemaDublinCore;
+import org.apache.jempbox.xmp.XMPSchemaPDF;
 import org.apache.jempbox.xmp.pdfa.XMPSchemaPDFAId;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo;
 import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
@@ -31,32 +40,23 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 
 /**
  * This is an example that creates a simple PDF/A document.
- * 
  */
-public class PDFAFile
+public class PDFA3File
 {
-  /**
-   * Constructor.
-   */
-  public PDFAFile()
-  {
-    super();
-  }
 
   /**
-   * Create a simple PDF/A document.
-   * 
+   * Create a simple PDF/A-3 document.
    * This example is based on HelloWorld example.
-   * 
    * As it is a simple case, to conform the PDF/A norm, are added : - the font
-   * used in the document - a light xmp block with only PDF identification
-   * schema (the only mandatory) - an output intent
+   * used in the document - the sRGB color profile - a light xmp block with only
+   * PDF identification schema (the only mandatory) - an output intent To
+   * conform to A/3 - the mandatory MarkInfo dictionary displays tagged PDF
+   * support - and optional producer and - optional creator info is added
    * 
    * @param file
    *          The file to write the PDF to.
    * @param message
    *          The message to write in the file.
-   * 
    * @throws Exception
    *           If something bad occurs
    */
@@ -64,10 +64,13 @@ public class PDFAFile
   {
     // the document
     PDDocument doc = null;
-    try {
+    try
+    {
       doc = new PDDocument();
 
+      // now create the page and add content
       PDPage page = new PDPage();
+
       doc.addPage(page);
 
       InputStream fontStream = PDFA3File.class.getResourceAsStream("/Ubuntu-R.ttf");
@@ -83,20 +86,10 @@ public class PDFAFile
       contentStream.saveGraphicsState();
       contentStream.close();
 
-      PDDocumentCatalog cat = doc.getDocumentCatalog();
-      PDMetadata metadata = new PDMetadata(doc);
-      cat.setMetadata(metadata);
-
-      // jempbox version
-      XMPMetadata xmp = new XMPMetadata();
-      XMPSchemaPDFAId pdfaid = new XMPSchemaPDFAId(xmp);
-      xmp.addSchema(pdfaid);
-      pdfaid.setConformance("B");
-      pdfaid.setPart(1);
-      pdfaid.setAbout("");
-      metadata.importXMPMetadata(xmp);
+      PDDocumentCatalog cat = makeA3compliant(doc);
 
       InputStream colorProfile = PDFA3File.class.getResourceAsStream("/sRGB Color Space Profile.icm");
+
       // create output intent
       PDOutputIntent oi = new PDOutputIntent(doc, colorProfile);
       oi.setInfo("sRGB IEC61966-2.1");
@@ -107,11 +100,69 @@ public class PDFAFile
 
       doc.save(file);
 
-    } finally {
-      if (doc != null) {
+    }
+    finally
+    {
+      if (doc != null)
+      {
         doc.close();
       }
     }
+  }
+
+  /**
+   * Makes A PDF/A3a-compliant document from a PDF-A1 compliant document (on the
+   * metadata level, this will not e.g. convert graphics to JPG-2000)
+   */
+  private PDDocumentCatalog makeA3compliant(PDDocument doc) throws IOException, TransformerException
+  {
+    PDDocumentCatalog cat = doc.getDocumentCatalog();
+    PDMetadata metadata = new PDMetadata(doc);
+    cat.setMetadata(metadata);
+    // jempbox version
+    XMPMetadata xmp = new XMPMetadata();
+    XMPSchemaPDFAId pdfaid = new XMPSchemaPDFAId(xmp);
+    xmp.addSchema(pdfaid);
+
+    XMPSchemaDublinCore dc = xmp.addDublinCoreSchema();
+    String creator = System.getProperty("user.name");
+    String producer = "PDFBOX";
+    dc.addCreator(creator);
+    dc.setAbout("");
+
+    XMPSchemaBasic xsb = xmp.addBasicSchema();
+    xsb.setAbout("");
+
+    xsb.setCreatorTool(creator);
+    xsb.setCreateDate(GregorianCalendar.getInstance());
+    // PDDocumentInformation pdi=doc.getDocumentInformation();
+    PDDocumentInformation pdi = new PDDocumentInformation();
+    pdi.setProducer(producer);
+    pdi.setAuthor(creator);
+    doc.setDocumentInformation(pdi);
+
+    XMPSchemaPDF pdf = xmp.addPDFSchema();
+    pdf.setProducer(producer);
+    pdf.setAbout("");
+
+    // Mandatory: PDF-A3 is tagged PDF which has to be expressed using a
+    // MarkInfo dictionary (PDF A/3 Standard sec. 6.7.2.2)
+    PDMarkInfo markinfo = new PDMarkInfo();
+    markinfo.setMarked(true);
+    doc.getDocumentCatalog().setMarkInfo(markinfo);
+
+    pdfaid.setPart(3);
+    pdfaid.setConformance("A");/*
+                                * All files are PDF/A-3, setConformance refers
+                                * to the level conformance, e.g. PDF/A-3-B where
+                                * B means only visually preservable, U means
+                                * visually and unicode preservable and A -like
+                                * in this case- means full compliance, i.e.
+                                * visually, unicode and structurally preservable
+                                */
+    pdfaid.setAbout("");
+    metadata.importXMPMetadata(xmp);
+    return cat;
   }
 
   /**
@@ -123,14 +174,20 @@ public class PDFAFile
    */
   public static void main(String[] args)
   {
-    PDFAFile app = new PDFAFile();
-    try {
-      if (args.length != 2) {
+    PDFA3File app = new PDFA3File();
+    try
+    {
+      if (args.length != 2)
+      {
         app.usage();
-      } else {
+      }
+      else
+      {
         app.doIt(args[0], args[1]);
       }
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       e.printStackTrace();
     }
   }
