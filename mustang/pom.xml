@@ -3,7 +3,7 @@
 
   <groupId>com.seeburger.ZUGFeRD</groupId>
   <artifactId>mustang</artifactId>
-  <version>1.1.1alpha.SEE9</version>
+  <version>1.1.1alpha.SEE10-SNAPSHOT</version>
 
 	<repositories>
 		<repository>
@@ -21,7 +21,7 @@
     <connection>scm:git:git@github.com:seeburger-ag/PDFA3.git</connection>
     <developerConnection>scm:git:git@github.com:seeburger-ag/PDFA3.git</developerConnection>
     <url>scm:git:git@github.com:seeburger-ag/PDFA3.git</url>
-    <tag>mustang-1.1.1alpha.SEE9</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
