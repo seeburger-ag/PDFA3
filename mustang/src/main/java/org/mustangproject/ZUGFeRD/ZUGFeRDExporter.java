@@ -31,6 +31,7 @@ import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -63,14 +64,14 @@ public class ZUGFeRDExporter {
 	 */
 
 
-	
+
 	private class LineCalc {
 		private IZUGFeRDExportableItem currentItem=null;
 		private BigDecimal priceGross;
 		private BigDecimal totalGross;
 		private BigDecimal itemTotalNetAmount;
 		private BigDecimal itemTotalVATAmount;
-		
+
 		public LineCalc(IZUGFeRDExportableItem currentItem) {
 			this.currentItem=currentItem;
 			BigDecimal multiplicator=currentItem.getProduct().getVATPercent().divide(new BigDecimal(100)).add(new BigDecimal(1));
@@ -113,8 +114,8 @@ public class ZUGFeRDExporter {
 	 */
 	byte[] zugferdData = null;
 	private boolean isTest;
-	
-	
+
+
 	private String nDigitFormat(BigDecimal value, int scale) {
 		/*
 		 * I needed 123,45, locale independent.I tried
@@ -145,12 +146,12 @@ public class ZUGFeRDExporter {
 		value=value.setScale( scale, BigDecimal.ROUND_HALF_UP ); // first, round so that e.g. 1.189999999999999946709294817992486059665679931640625 becomes 1.19
 		char[] repeat = new char[scale];
 		Arrays.fill(repeat, '0');
-		
+
 		DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols();
 		otherSymbols.setDecimalSeparator('.');
 		DecimalFormat dec = new DecimalFormat("0."+new String(repeat), otherSymbols);
 		return dec.format(value);
-		
+
 	}
 
 	private String vatFormat(BigDecimal value) {
@@ -267,7 +268,7 @@ public class ZUGFeRDExporter {
 		String testBooleanStr="false";
 		if (isTest) {
 			testBooleanStr="true";
-			
+
 		}
 		String xml= "﻿<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" //$NON-NLS-1$
 
@@ -366,7 +367,7 @@ public class ZUGFeRDExporter {
 				+ "			</ram:SpecifiedTradeSettlementPaymentMeans>\n"; //$NON-NLS-1$
 
 
-		
+
 		HashMap<BigDecimal, VATAmount> VATPercentAmountMap=getVATPercentAmountMap(trans);
 		for (BigDecimal currentTaxPercent : VATPercentAmountMap.keySet()) {
 			VATAmount amount = VATPercentAmountMap.get(currentTaxPercent);
@@ -505,13 +506,13 @@ public class ZUGFeRDExporter {
 	 * which taxes have been used with which amounts in this transaction,
 	 * empty for no taxes, or e.g. 19=>190 and 7=>14 if 1000 Eur were applicable
 	 * to 19% VAT (=>190 EUR VAT) and 200 EUR were applicable to 7% (=>14 EUR VAT)
-	 * 190 Eur  
+	 * 190 Eur
 	 * @return
 	 *
 	*/
 	private HashMap<BigDecimal, VATAmount> getVATPercentAmountMap(IZUGFeRDExportableTransaction trans) {
 		HashMap<BigDecimal, VATAmount> hm=new HashMap<BigDecimal, VATAmount> ();
-		
+
 		for (IZUGFeRDExportableItem currentItem : trans.getZFItems()) {
 			BigDecimal percent=currentItem.getProduct().getVATPercent();
 			LineCalc lc=new LineCalc(currentItem);
@@ -521,7 +522,7 @@ public class ZUGFeRDExporter {
 				hm.put(percent, itemVATAmount);
 			} else {
 				hm.put(percent, current.add(itemVATAmount));
-				
+
 			}
 		}
 
@@ -619,13 +620,26 @@ public class ZUGFeRDExporter {
 		doc.getDocumentCatalog().setNames(names);
 
 		// AF entry (Array) in catalog with the FileSpec
-		COSArray cosArray = (COSArray)doc.getDocumentCatalog().getCOSDictionary().getItem("AF");
-		if (cosArray == null)
+		COSBase AFEntry = (COSBase)doc.getDocumentCatalog().getCOSDictionary().getItem("AF");
+		if ((AFEntry == null))
 		{
-			cosArray = new COSArray();
+			COSArray cosArray = new COSArray();
+			cosArray.add(fs);
+			doc.getDocumentCatalog().getCOSDictionary().setItem("AF", cosArray);
+		} else if (AFEntry instanceof COSArray)
+		{
+			COSArray cosArray = (COSArray)AFEntry;
+			cosArray.add(fs);
+			doc.getDocumentCatalog().getCOSDictionary().setItem("AF", cosArray);
+		} else if ((AFEntry instanceof COSObject) &&
+				   ((COSObject)AFEntry).getObject() instanceof COSArray)
+		{
+			COSArray cosArray = (COSArray)((COSObject)AFEntry).getObject();
+			cosArray.add(fs);
+		} else
+		{
+			throw new IOException("Unexpected object type for PDFDocument/Catalog/COSDictionary/Item(AF)");
 		}
-		cosArray.add(fs);
-		doc.getDocumentCatalog().getCOSDictionary().setItem("AF", cosArray);
 	}
 
 
