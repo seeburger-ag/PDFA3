@@ -1,9 +1,8 @@
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/ZUGFeRD/community)
-
-Mustangproject
+PDFA3
 =====
 
-Source code repository for the [Mustang project](http://www.mustangproject.org/) open source java PDF invoice metadata library in ZUGFeRD format.
+Some samples how to create PDF/A3 files and PDF/A3 files with embedded files using Apache PDFBox and
+the source code for the [Mustang project](http://www.mustangproject.org/).
 
 License
 -----
@@ -15,7 +14,7 @@ Running
 
 This project requires Maven to run. Build project with "mvn clean install". This will build the project, test it and install the artifacts to local cache. After that the mustang jar can be used.
 
-More information in [the mustang documentation](https://github.com/ZUGFeRD/mustangproject/blob/master/doc/ZugferdDev.en.pdf?raw=true).
+More informations in [the mustang documentation](https://github.com/Rayman2200/PDFA3/blob/master/mustang/doc/ZugferdDev.en.pdf?raw=true)).
 
 Usage
 -----
@@ -27,7 +26,7 @@ If you setup a Maven project, you can grab the artifacts from this maven reposit
 <repositories>
     <repository>
         <id>mustang-mvn-repo</id>
-        <url>https://raw.github.com/ZUGFeRD/mustangproject/mvn-repo/</url>
+        <url>https://raw.github.com/Rayman2200/PDFA3/mvn-repo/</url>
     </repository>
 </repositories>
 ```
@@ -38,13 +37,7 @@ As dependency use this
 <dependency>
   <groupId>org.mustangproject.ZUGFeRD</groupId>
   <artifactId>mustang</artifactId>
-  <version>1.7.1</version>
-</dependency>
-
-<dependency> 
-      <groupId>commons-logging</groupId> 
-      <artifactId>commons-logging</artifactId> 
-      <version>1.1.1</version> 
+  <version>1.1.2</version>
 </dependency>
 ```
 
