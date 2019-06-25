@@ -1,3 +1,21 @@
+/** **********************************************************************
+ *
+ * Copyright 2018 Jochen Staerk
+ *
+ * Use is subject to license terms.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *********************************************************************** */
 package org.mustangproject.ZUGFeRD;
 /**
  * Mustangproject's ZUGFeRD implementation
@@ -8,383 +26,341 @@ package org.mustangproject.ZUGFeRD;
  * @author jstaerk
  * */
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.util.Map;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
+import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
+import org.apache.pdfbox.pdmodel.common.PDNameTreeNode;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
-import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
-import org.apache.pdfbox.pdmodel.common.COSObjectable;
-import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
-import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-//root.setNamespace(Namespace.getNamespace("http://www.energystar.gov/manageBldgs/req"));
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import java.io.*;
+import java.util.*;
 
 public class ZUGFeRDImporter {
-	/*
-	call extract(importFilename). 
-	containsMeta() will return if ZUGFeRD data has been found, 
-	afterwards you can call getBIC(), getIBAN() etc.
-
-*/
-	
-	/**@var if metadata has been found	 */
-	private boolean containsMeta=false;
-	/**@var the reference (i.e. invoice number) of the sender */
-	private String foreignReference;
-	private String BIC;
-	private String IBAN;
-	private String holder;
-	private String amount;
-	/** Raw XML form of the extracted data - may be directly obtained. */
-	private byte[] rawXML=null;
-	private String bankName;
-	private boolean amountFound;
-	
-	/**
-	 * Extracts a ZUGFeRD invoice from a PDF document represented by a file name.
-	 * Errors are just logged to STDOUT.
-	 */
-	public void extract(String pdfFilename) 
-	{
-		try
-		{
-			extractLowLevel(new BufferedInputStream(new FileInputStream(pdfFilename)));
-		} catch (IOException ioe)
-		{
-			ioe.printStackTrace();
-		}
-	}	
 
 	/**
-	 * Extracts a ZUGFeRD invoice from a PDF document represented by an input stream.
-	 * Errors are reported via exception handling.
+	 * @var if metadata has been found
 	 */
-	public void extractLowLevel(InputStream pdfStream) throws IOException  {
-		PDDocument doc = null;
+	private boolean containsMeta = false;
+	/**
+	 * @var the reference (i.e. invoice number) of the sender
+	 */
+	private HashMap<String, byte[]> additionalXMLs = new HashMap<>();
+	/**
+	 * Raw XML form of the extracted data - may be directly obtained.
+	 */
+	private byte[] rawXML = null;
+	private String xmpString = null; // XMP metadata
+
+	public ZUGFeRDImporter(String pdfFilename) {
 		try {
-			doc = PDDocument.load(pdfStream);
-//			PDDocumentInformation info = doc.getDocumentInformation();
-			PDDocumentNameDictionary names = new PDDocumentNameDictionary(
-					doc.getDocumentCatalog());
-			PDEmbeddedFilesNameTreeNode etn;
-			etn = names.getEmbeddedFiles();
-			if (etn==null)  {
-				doc.close();
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(pdfFilename));
+			extractLowLevel(bis);
+			bis.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new ZUGFeRDExportException(e);
+		}
+	}
+
+	public ZUGFeRDImporter(InputStream pdfStream) {
+		try {
+			extractLowLevel(pdfStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new ZUGFeRDExportException(e);
+		}
+	}
+
+	/**
+	 * Extracts a ZUGFeRD invoice from a PDF document represented by an input
+	 * stream. Errors are reported via exception handling.
+	 *
+	 * @param pdfStream a inputstream of a pdf file
+	 */
+	private void extractLowLevel(InputStream pdfStream) throws IOException {
+		try (PDDocument doc = PDDocument.load(pdfStream)) {
+			// PDDocumentInformation info = doc.getDocumentInformation();
+			PDDocumentNameDictionary names = new PDDocumentNameDictionary(doc.getDocumentCatalog());
+			//start
+			InputStream XMP = doc.getDocumentCatalog().getMetadata().exportXMPMetadata();
+
+			xmpString = convertStreamToString(XMP);
+
+			PDEmbeddedFilesNameTreeNode etn = names.getEmbeddedFiles();
+			if (etn == null) {
 				return;
 			}
-			Map<String, COSObjectable> efMap = etn.getNames();
+
+			Map<String, PDComplexFileSpecification> efMap = etn.getNames();
 			// String filePath = "/tmp/";
-			for (String filename : efMap.keySet()) {
-				/**
-				 * currently (in the release candidate of version 1) only one
-				 * attached file with the name ZUGFeRD-invoice.xml is allowed
-				 * */
-				if (filename.equals("ZUGFeRD-invoice.xml")) { //$NON-NLS-1$
-					containsMeta = true;
 
-					PDComplexFileSpecification fileSpec = (PDComplexFileSpecification) efMap
-							.get(filename);
-					PDEmbeddedFile embeddedFile = fileSpec.getEmbeddedFile();
-					// String embeddedFilename = filePath + filename;
-					// File file = new File(filePath + filename);
-					// System.out.println("Writing " + embeddedFilename);
-					// ByteArrayOutputStream fileBytes=new
-					// ByteArrayOutputStream();
-					// FileOutputStream fos = new FileOutputStream(file);
-					rawXML = embeddedFile.getByteArray();
-					setMeta(new String(rawXML));
-					// fos.write(embeddedFile.getByteArray());
-					// fos.close();
+			if (efMap != null) {
+				extractFiles(efMap); // see
+				// https://memorynotfound.com/apache-pdfbox-extract-embedded-file-pdf-document/
+			} else {
+
+				List<PDNameTreeNode<PDComplexFileSpecification>> kids = etn.getKids();
+				for (PDNameTreeNode<PDComplexFileSpecification> node : kids) {
+					Map<String, PDComplexFileSpecification> namesL = node.getNames();
+					extractFiles(namesL);
 				}
 			}
-
-		} catch (IOException e1) {
-			throw e1;
 		}
-		finally {
-			try {
-				if(doc!=null) {
-					doc.close();
-				}
-			} catch (IOException e) {}
-		}
-
 	}
-	
-	public void parse() {
-		DocumentBuilderFactory factory = null;
-		DocumentBuilder builder = null;
-		Document document = null;
-
-		factory = DocumentBuilderFactory.newInstance();
-		factory.setNamespaceAware(true); //otherwise we can not act namespace independend, i.e. use document.getElementsByTagNameNS("*",...
-		try {
-			builder = factory.newDocumentBuilder();
-		} catch (ParserConfigurationException ex3) {
-			// TODO Auto-generated catch block
-			ex3.printStackTrace();
-		}
-
-		try {
-			InputStream bais = new ByteArrayInputStream(rawXML);
-			document = builder.parse(bais);
-		} catch (SAXException ex1) {
-			ex1.printStackTrace();
-		} catch (IOException ex2) {
-			ex2.printStackTrace();
-		}
-		NodeList ndList ;
-		
-		// rootNode = document.getDocumentElement();
-		// ApplicableSupplyChainTradeSettlement
-		 ndList =  document.getDocumentElement()
-				.getElementsByTagNameNS("*","PaymentReference"); //$NON-NLS-1$
-				
-		for (int bookingIndex = 0; bookingIndex < ndList
-				.getLength(); bookingIndex++) {
-			Node booking = ndList.item(bookingIndex);
-			// if there is a attribute in the tag number:value
-			
-			setForeignReference(booking.getTextContent());
-
-		}
-/*
-		ndList = document
-				.getElementsByTagName("GermanBankleitzahlID"); //$NON-NLS-1$
-
-		for (int bookingIndex = 0; bookingIndex < ndList
-				.getLength(); bookingIndex++) {
-			Node booking = ndList.item(bookingIndex);
-			// if there is a attribute in the tag number:value
-			setBIC(booking.getTextContent());
-
-		}
-
-		ndList = document.getElementsByTagName("ProprietaryID"); //$NON-NLS-1$
-
-		for (int bookingIndex = 0; bookingIndex < ndList
-				.getLength(); bookingIndex++) {
-			Node booking = ndList.item(bookingIndex);
-			// if there is a attribute in the tag number:value
-			setIBAN(booking.getTextContent());
-
-		}
-			<ram:PayeePartyCreditorFinancialAccount>
-					<ram:IBANID>DE1234</ram:IBANID>
-				</ram:PayeePartyCreditorFinancialAccount>
-				<ram:PayeeSpecifiedCreditorFinancialInstitution>
-					<ram:BICID>DE5656565</ram:BICID>
-					<ram:Name>Commerzbank</ram:Name>
-				</ram:PayeeSpecifiedCreditorFinancialInstitution>
-			
-*/
-		ndList = document.getElementsByTagNameNS("*","PayeePartyCreditorFinancialAccount"); //$NON-NLS-1$
-
-		for (int bookingIndex = 0; bookingIndex < ndList
-				.getLength(); bookingIndex++) {
-
-			Node booking = ndList.item(bookingIndex);
-			// there are many "name" elements, so get the one below
-			// SellerTradeParty
-			NodeList bookingDetails = booking.getChildNodes();
-			
-
-			for (int detailIndex = 0; detailIndex < bookingDetails
-					.getLength(); detailIndex++) {
-				Node detail = bookingDetails.item(detailIndex);
-				if ((detail.getLocalName()!=null)&&(detail.getLocalName().equals("IBANID"))) { //$NON-NLS-1$
-					setIBAN(detail.getTextContent());
-
-				} 
-			}
-
-		}
-
-		ndList = document.getElementsByTagNameNS("*","PayeeSpecifiedCreditorFinancialInstitution"); //$NON-NLS-1$
-
-		for (int bookingIndex = 0; bookingIndex < ndList
-				.getLength(); bookingIndex++) {
-			Node booking = ndList.item(bookingIndex);
-			// there are many "name" elements, so get the one below
-			// SellerTradeParty
-			NodeList bookingDetails = booking.getChildNodes();
-			for (int detailIndex = 0; detailIndex < bookingDetails
-					.getLength(); detailIndex++) {
-				Node detail = bookingDetails.item(detailIndex);
-				if ((detail.getLocalName()!=null)&&(detail.getLocalName().equals("BICID"))) { //$NON-NLS-1$
-					setBIC(detail.getTextContent());
-				}
-				if ((detail.getLocalName()!=null)&&(detail.getLocalName().equals("Name"))) { //$NON-NLS-1$
-					setBankName(detail.getTextContent());
-				}
-			}
-
-		}
-
-		//
-		ndList = document.getElementsByTagNameNS("*","SellerTradeParty"); //$NON-NLS-1$
-
-		for (int bookingIndex = 0; bookingIndex < ndList
-				.getLength(); bookingIndex++) {
-			Node booking = ndList.item(bookingIndex);
-			// there are many "name" elements, so get the one below
-			// SellerTradeParty
-			NodeList bookingDetails = booking.getChildNodes();
-			for (int detailIndex = 0; detailIndex < bookingDetails
-					.getLength(); detailIndex++) {
-				Node detail = bookingDetails.item(detailIndex);
-				if ((detail.getLocalName()!=null)&&(detail.getLocalName().equals("Name"))) { //$NON-NLS-1$
-					setHolder(detail.getTextContent());
-				}
-			}
-
-		}
-
-		ndList = document.getElementsByTagNameNS("*","DuePayableAmount"); //$NON-NLS-1$
-
-		for (int bookingIndex = 0; bookingIndex < ndList
-				.getLength(); bookingIndex++) {
-			Node booking = ndList.item(bookingIndex);
-			// if there is a attribute in the tag number:value
-			amountFound=true;
-			setAmount(booking.getTextContent());
-
-		}
 
 
-		if  (!amountFound) {
-			/* there is apparently no requirement to mention DuePayableAmount,, 
-			 * if it's not there, check for GrandTotalAmount
+	private void extractFiles(Map<String, PDComplexFileSpecification> names) throws IOException {
+		for (String filename : names.keySet()) {
+			/**
+			 * currently (in the release candidate of version 1) only one attached file with
+			 * the name ZUGFeRD-invoice.xml is allowed
 			 */
-			ndList = document.getElementsByTagNameNS("*","GrandTotalAmount"); //$NON-NLS-1$
-			for (int bookingIndex = 0; bookingIndex < ndList
-					.getLength(); bookingIndex++) {
-				Node booking = ndList.item(bookingIndex);
-				// if there is a attribute in the tag number:value
-				amountFound=true;
-				setAmount(booking.getTextContent());
+			if ((filename.equals("ZUGFeRD-invoice.xml") || (filename.equals("zugferd-invoice.xml")) || filename.equals("factur-x.xml"))) { //$NON-NLS-1$
+				containsMeta = true;
+
+				PDComplexFileSpecification fileSpec = names.get(filename);
+				PDEmbeddedFile embeddedFile = fileSpec.getEmbeddedFile();
+				// String embeddedFilename = filePath + filename;
+				// File file = new File(filePath + filename);
+				// System.out.println("Writing " + embeddedFilename);
+				// ByteArrayOutputStream fileBytes=new
+				// ByteArrayOutputStream();
+				// FileOutputStream fos = new FileOutputStream(file);
+
+				rawXML = embeddedFile.toByteArray();
+				setMeta(new String(rawXML));
+
+				// fos.write(embeddedFile.getByteArray());
+				// fos.close();
+			}
+			if (filename.startsWith("additional_data")) {
+
+				PDComplexFileSpecification fileSpec = names.get(filename);
+				PDEmbeddedFile embeddedFile = fileSpec.getEmbeddedFile();
+				additionalXMLs.put(filename, embeddedFile.toByteArray());
 
 			}
-			
 		}
-	
+	}
 
+	private void prettyPrint(Document document) throws TransformerException {
+		TransformerFactory tf = TransformerFactory.newInstance();
+		Transformer transformer = null;
+		try {
+			transformer = tf.newTransformer();
+		} catch (TransformerConfigurationException e) {
+			e.printStackTrace();
+		}
+		transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+		StringWriter writer = new StringWriter();
+		transformer.transform(new DOMSource(document), new StreamResult(writer));
+		String output = writer.getBuffer().toString();//.replaceAll("\n|\r", "");
+		System.err.println(output);
+	}
+
+	private Document getDocument() throws ParserConfigurationException, IOException, SAXException, TransformerException {
+		DocumentBuilderFactory xmlFact = DocumentBuilderFactory.newInstance();
+		xmlFact.setNamespaceAware(false);
+		DocumentBuilder builder = xmlFact.newDocumentBuilder();
+		Document doc = builder.parse(new ByteArrayInputStream(rawXML));
+		//prettyPrint(doc);
+		return doc;
+	}
+
+	private String extractString(String xpathStr) {
+		if (!containsMeta) {
+			throw new ZUGFeRDExportException("No suitable data/ZUGFeRD file could be found.");
+		}
+		String result;
+		try {
+			Document document = getDocument();
+			XPathFactory xpathFact = XPathFactory.newInstance();
+			XPath xpath = xpathFact.newXPath();
+			result = xpath.evaluate(xpathStr, document);
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+			throw new ZUGFeRDExportException(e);
+		} catch (IOException | SAXException | TransformerException | XPathExpressionException e) {
+			e.printStackTrace();
+			throw new ZUGFeRDExportException(e);
+		}
+		return result;
+	}
+
+	/**
+	 * @return the reference (purpose) the sender specified for this invoice
+	 */
+	public String getForeignReference() {
+		String result = extractString("//ApplicableHeaderTradeSettlement/PaymentReference");
+		if(result == null || result.isEmpty())
+			result = extractString("//ApplicableSupplyChainTradeSettlement/PaymentReference");
+		return result;
+	}
+
+	/**
+	 * @return the document code
+	 */
+	public String getDocumentCode() {
+		return extractString("//HeaderExchangedDocument/TypeCode");
+	}
+
+	/**
+	 * @return the sender's bank's BLZ code
+	 */
+	public String getBLZ() {
+		return extractString("//PayeeSpecifiedCreditorFinancialInstitution/GermanBankleitzahlID");
+	}
+
+	/**
+	 * @return the sender's bank's BIC code
+	 */
+	public String getBIC() {
+		return extractString("//PayeeSpecifiedCreditorFinancialInstitution/BICID");
+	}
+
+	/**
+	 * @return the sender's bankname
+	 */
+	public String getBankName() {
+		return extractString("/CrossIndustryInvoice/SupplyChainTradeTransaction/ApplicableHeaderTradeSettlement/SpecifiedTradeSettlementPaymentMeans/PayeeSpecifiedCreditorFinancialInstitution/Name");
+	}
+
+	public String getIBAN() {
+		return extractString("//PayeePartyCreditorFinancialAccount/IBANID");
+	}
+
+	public String getKTO() {
+		return extractString("//PayeePartyCreditorFinancialAccount/ProprietaryID");
+	}
+
+	public String getHolder() {
+		return extractString("//SellerTradeParty/Name");
+	}
+
+	/**
+	 * @return the total payable amount
+	 */
+	public String getAmount() {
+		String result = extractString("//SpecifiedTradeSettlementHeaderMonetarySummation/DuePayableAmount");
+		if(result == null || result.isEmpty())
+			result = extractString("//SpecifiedTradeSettlementMonetarySummation/GrandTotalAmount");
+		return result;
+	}
+
+	/**
+	 * @return when the payment is due
+	 */
+	public String getDueDate() {
+		return extractString("//SpecifiedTradePaymentTerms/DueDateDateTime/DateTimeString");
+	}
+
+	public HashMap<String, byte[]> getAdditionalData() {
+		return additionalXMLs;
+	}
+
+	/**
+	 * get xmp metadata of the PDF, null if not available
+	 *
+	 * @return string
+	 */
+	public String getXMP() {
+		return xmpString;
 	}
 
 
+	/**
+	 * @return if export found parseable ZUGFeRD data
+	 */
 	public boolean containsMeta() {
 		return containsMeta;
 	}
 
-	public String getForeignReference() {
-		return foreignReference;
-	}
-
-
-
-	public void setForeignReference(String foreignReference) {
-		this.foreignReference = foreignReference;
-	}
-
-
-
-	public String getBIC() {
-		return BIC;
-	}
-
-
-
-	private void setBIC(String bic) {
-		this.BIC = bic;
-	}
-
-
-	private void setBankName(String bankname) {
-		this.bankName = bankname;
-	}
-
-
-
-	public String getIBAN() {
-		return IBAN;
-	}
-
-
-	public String getBankName() {
-		return bankName;
-	}
-
-
-
-	public void setIBAN(String IBAN) {
-		this.IBAN = IBAN;
-	}
-
-
-
-	public String getHolder() {
-		return holder;
-	}
-
-
-
-	private void setHolder(String holder) {
-		this.holder = holder;
-	}
-
-
-
-	public String getAmount() {
-		return amount;
-	}
-
-
-	private void setAmount(String amount) {
-		this.amount = amount;
-	}
-
+	/**
+	 * @param meta raw XML to be set
+	 */
 	public void setMeta(String meta) {
-		this.rawXML=meta.getBytes();
+		this.rawXML = meta.getBytes();
 	}
 
+	/**
+	 * @return raw XML of the invoice
+	 */
 	public String getMeta() {
-		if (rawXML==null){
-			return null; 
-		} else {
+		if (rawXML == null) {
+			return null;
+		}
+
+		return new String(rawXML);
+	}
+
+
+	/**
+	 * @return return UTF8 XML (without BOM) of the invoice
+	 */
+	public String getUTF8() {
+		if (rawXML == null) {
+			return null;
+		}
+		if (rawXML.length < 3) {
 			return new String(rawXML);
 		}
-	}
 
+
+		byte[] bomlessData;
+
+		if ((rawXML[0] == (byte) 0xEF)
+				&& (rawXML[1] == (byte) 0xBB)
+				&& (rawXML[2] == (byte) 0xBF)) {
+			// I don't like BOMs, lets remove it
+			bomlessData = new byte[rawXML.length - 3];
+			System.arraycopy(rawXML, 3, bomlessData, 0,
+					rawXML.length - 3);
+		} else {
+			bomlessData = rawXML;
+		}
+
+		return new String(bomlessData);
+	}
 
 	/**
 	 * Returns the raw XML data as extracted from the ZUGFeRD PDF file.
 	 */
-	public byte[] getRawXML() 
-	{
+	public byte[] getRawXML() {
 		return rawXML;
 	}
 
 	/**
-	 * will return true if the metadata (just extract-ed or set with setMeta) contains ZUGFeRD XML
-	 * */
+	 * will return true if the metadata (just extract-ed or set with setMeta)
+	 * contains ZUGFeRD XML
+	 *
+	 * @return true if the invoice contains ZUGFeRD XML
+	 */
 	public boolean canParse() {
-		
-		
-		//SpecifiedExchangedDocumentContext is in the schema, so a relatively good indication if zugferd is present - better than just invoice
-		String meta=getMeta();
-		return (meta!=null)&&( meta.length()>0)&&( meta.contains("SpecifiedExchangedDocumentContext")); //$NON-NLS-1$
+
+		// SpecifiedExchangedDocumentContext is in the schema, so a relatively good
+		// indication if zugferd is present - better than just invoice
+		String meta = getMeta();
+		return (meta != null) && (meta.length() > 0) && ((meta.contains("SpecifiedExchangedDocumentContext") //$NON-NLS-1$
+				/* ZF1 */ || meta.contains("ExchangedDocumentContext") /* ZF2 */));
 	}
+
+	static String convertStreamToString(java.io.InputStream is) {
+		// source https://stackoverflow.com/questions/309424/how-do-i-read-convert-an-inputstream-into-a-string-in-java referring to
+		// https://community.oracle.com/blogs/pat/2004/10/23/stupid-scanner-tricks
+		Scanner s = new Scanner(is).useDelimiter("\\A");
+		return s.hasNext() ? s.next() : "";
+	}
+
 }

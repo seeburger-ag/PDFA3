@@ -1,59 +1,53 @@
+/** **********************************************************************
+ *
+ * Copyright 2018 Jochen Staerk
+ *
+ * Use is subject to license terms.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *********************************************************************** */
 package org.mustangproject.ZUGFeRD;
 /**
  * Mustangproject's ZUGFeRD implementation
  * ZUGFeRD exporter helper class
  * Licensed under the APLv2
  * @date 2014-05-10
- * @version 1.0
+ * @version 1.2.0s
  * @author jstaerk
  * */
-import org.apache.jempbox.impl.XMLUtil;
-import org.apache.jempbox.xmp.XMPSchemaBasic;
-import org.w3c.dom.Element;
 
+import org.apache.xmpbox.XMPMetadata;
+import org.apache.xmpbox.schema.XMPSchema;
 
-public class XMPSchemaZugferd extends XMPSchemaBasic
-{
+public class XMPSchemaZugferd extends XMPSchema {
 
-	private String conformanceLevel = "COMFORT";
+	/**
+	 * This is what needs to be added to the RDF metadata - basically the name of the embedded Zugferd file
+	 */
+	public XMPSchemaZugferd(XMPMetadata metadata, ZUGFeRDConformanceLevel conformanceLevel, String URN, String prefix, String filename) {
+		super(metadata, URN, prefix, "ZUGFeRD Schema");
 
-		/**
-		 * This is what needs to be added to the RDF metadata - basically the name of the embedded
-		 * Zugferd file
-		 * */
-		public XMPSchemaZugferd(org.apache.jempbox.xmp.XMPMetadata parent, String conformanceLevel)
-		{
-			super(parent);
+		setAboutAsSimple("");
 
-			if (conformanceLevel != null)
-			{
-				this.conformanceLevel = conformanceLevel;
-			}
-
-			schema.setAttributeNS(NS_NAMESPACE, "xmlns:zf", //$NON-NLS-1$
-					"urn:ferd:pdfa:CrossIndustryDocument:invoice:1p0#"); //$NON-NLS-1$
-// the superclass includes this two namespaces we don't need
-			schema.removeAttributeNS(NS_NAMESPACE, "xapGImg"); //$NON-NLS-1$
-			schema.removeAttributeNS(NS_NAMESPACE, "xmp"); //$NON-NLS-1$
-			Element textNode = schema.getOwnerDocument().createElement(
-					"zf:DocumentType"); //$NON-NLS-1$
-			XMLUtil.setStringValue(textNode, "INVOICE"); //$NON-NLS-1$
-			schema.appendChild(textNode);
-
-			textNode = schema.getOwnerDocument().createElement(
-					"zf:DocumentFileName"); //$NON-NLS-1$
-			XMLUtil.setStringValue(textNode, "ZUGFeRD-invoice.xml"); //$NON-NLS-1$
-			schema.appendChild(textNode);
-
-			textNode = schema.getOwnerDocument().createElement("zf:Version"); //$NON-NLS-1$
-			XMLUtil.setStringValue(textNode, "1.0"); //$NON-NLS-1$
-			schema.appendChild(textNode);
-
-			textNode = schema.getOwnerDocument().createElement(
-					"zf:ConformanceLevel"); //$NON-NLS-1$
-			XMLUtil.setStringValue(textNode, this.conformanceLevel); //$NON-NLS-1$
-			schema.appendChild(textNode);
-
+		String conformanceLevelValue = conformanceLevel.name();
+		if (conformanceLevelValue.equals("BASICWL")) {
+			conformanceLevelValue = "BASIC WL";
+		} else if (conformanceLevelValue.equals("EN16931")) {
+			conformanceLevelValue = "EN 16931";
 		}
-
+		setTextPropertyValue("ConformanceLevel", conformanceLevelValue);
+		setTextPropertyValue("DocumentType", "INVOICE");
+		setTextPropertyValue("DocumentFileName", filename);
+		setTextPropertyValue("Version", "1.0");
 	}
+}

@@ -1,2 +1,17 @@
-/bin
-/target
+.project
+.classpath
+.settings/
+PDFA*.pdf
+target/
+pom.xml.*
+bin/
+/.gradle/
+
+# ignore intelliJ foobar
+*.iml
+.idea
+
+# ignore test files
+ZUGFeRD-*-test
+
+dependency-reduced-pom.xml
