@@ -428,7 +428,7 @@ public class ZUGFeRD2PullProvider implements IXMLProvider {
             }
         } catch (UnsupportedEncodingException e)
         {
-            throw new RuntimeExeption(e);
+            throw new RuntimeException(e);
         } //$NON-NLS-1$
     }
 
