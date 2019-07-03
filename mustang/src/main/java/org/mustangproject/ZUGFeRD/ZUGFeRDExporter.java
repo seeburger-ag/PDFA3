@@ -532,12 +532,12 @@ public class ZUGFeRDExporter implements Closeable {
             buffer.write(prefix.getBytes("UTF-8")); // see https://github.com/ZUGFeRD/mustangproject/issues/44
             serializer.serialize(xmpMetadata, buffer, false);
             buffer.write(suffix.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (UnsupportedEncodingException e)
+        {
+            throw new TransformerException(e);
+        } catch (IOException e)
+        {
+            throw new TransformerException(e);
         }
         return buffer.toByteArray();
     }
