@@ -30,75 +30,76 @@ import java.io.ByteArrayOutputStream;
 public class ZUGFeRD1PullProvider implements IXMLProvider {
 
 
-	protected byte[] zugferdData;
-	private Marshaller marshaller;
+    protected byte[] zugferdData;
+    private Marshaller marshaller;
 
-	private boolean isTest;
-
-
-	/**
-	 * enables the flag to indicate a test invoice in the XML structure
-	 */
-	public void setTest() {
-		isTest = true;
-	}
-
-	public ZUGFeRD1PullProvider() {
-		// TODO Auto-generated constructor stub
-		try {
-			marshaller = JAXBContext.newInstance("org.mustangproject.ZUGFeRD.model").createMarshaller();
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-			marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-			marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ZFNamespacePrefixMapper());
-		} catch (JAXBException e) {
-			throw new ZUGFeRDExportException("Could not initialize JAXB", e);
-		}
-
-	}
-
-	private String createZugferdXMLForTransaction(IZUGFeRDExportableTransaction trans) {
-
-		JAXBElement<CrossIndustryDocumentType> jaxElement =
-				new ZUGFeRDTransactionModelConverter(trans).withTest(isTest).convertToModel();
-
-		try {
-			return marshalJaxToXMLString(jaxElement);
-		} catch (JAXBException e) {
-			throw new ZUGFeRDExportException("Could not marshal ZUGFeRD transaction to XML", e);
-		}
-	}
-
-	private String marshalJaxToXMLString(Object jaxElement) throws JAXBException {
-		ByteArrayOutputStream outputXml = new ByteArrayOutputStream();
-		marshaller.marshal(jaxElement, outputXml);
-		return outputXml.toString();
-	}
+    private boolean isTest;
 
 
-	@Override
-	public byte[] getXML() {
-		return zugferdData;
-	}
+    /**
+     * enables the flag to indicate a test invoice in the XML structure
+     */
+    public void setTest() {
+        isTest = true;
+    }
+
+    public ZUGFeRD1PullProvider() {
+        // TODO Auto-generated constructor stub
+        try {
+            // JAXB removed - not relevant for the Seeburger use-case
+            //marshaller = JAXBContext.newInstance("org.mustangproject.ZUGFeRD.model", this.getClass().getClassLoader()).createMarshaller();
+            //marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            //marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+            //marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ZFNamespacePrefixMapper());
+        } catch (Exception e) {
+            throw new ZUGFeRDExportException("Could not initialize JAXB", e);
+        }
+
+    }
+
+    private String createZugferdXMLForTransaction(IZUGFeRDExportableTransaction trans) {
+
+        JAXBElement<CrossIndustryDocumentType> jaxElement =
+                new ZUGFeRDTransactionModelConverter(trans).withTest(isTest).convertToModel();
+
+        try {
+            return marshalJaxToXMLString(jaxElement);
+        } catch (JAXBException e) {
+            throw new ZUGFeRDExportException("Could not marshal ZUGFeRD transaction to XML", e);
+        }
+    }
+
+    private String marshalJaxToXMLString(Object jaxElement) throws JAXBException {
+        ByteArrayOutputStream outputXml = new ByteArrayOutputStream();
+        marshaller.marshal(jaxElement, outputXml);
+        return outputXml.toString();
+    }
 
 
-	@Override
-	public void generateXML(IZUGFeRDExportableTransaction trans) {
-		// create a dummy file stream, this would probably normally be a
-		// FileInputStream
+    @Override
+    public byte[] getXML() {
+        return zugferdData;
+    }
 
-		byte[] zugferdRaw = createZugferdXMLForTransaction(trans).getBytes(); //$NON-NLS-1$
 
-		if ((zugferdRaw[0] == (byte) 0xEF)
-				&& (zugferdRaw[1] == (byte) 0xBB)
-				&& (zugferdRaw[2] == (byte) 0xBF)) {
-			// I don't like BOMs, lets remove it
-			zugferdData = new byte[zugferdRaw.length - 3];
-			System.arraycopy(zugferdRaw, 3, zugferdData, 0,
-					zugferdRaw.length - 3);
-		} else {
-			zugferdData = zugferdRaw;
-		}
-	}
+    @Override
+    public void generateXML(IZUGFeRDExportableTransaction trans) {
+        // create a dummy file stream, this would probably normally be a
+        // FileInputStream
+
+        byte[] zugferdRaw = createZugferdXMLForTransaction(trans).getBytes(); //$NON-NLS-1$
+
+        if ((zugferdRaw[0] == (byte) 0xEF)
+                && (zugferdRaw[1] == (byte) 0xBB)
+                && (zugferdRaw[2] == (byte) 0xBF)) {
+            // I don't like BOMs, lets remove it
+            zugferdData = new byte[zugferdRaw.length - 3];
+            System.arraycopy(zugferdRaw, 3, zugferdData, 0,
+                    zugferdRaw.length - 3);
+        } else {
+            zugferdData = zugferdRaw;
+        }
+    }
 
 
 }

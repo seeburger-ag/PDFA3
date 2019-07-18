@@ -35,196 +35,197 @@ import java.util.GregorianCalendar;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MustangReaderWriterEdgeTest extends MustangReaderTestCase {
 
-	@Override
-	public Date getDeliveryDate() {
-		return new GregorianCalendar(2017, Calendar.MAY, 7).getTime();
-	}
+    @Override
+    public Date getDeliveryDate() {
+        return new GregorianCalendar(2017, Calendar.MAY, 7).getTime();
+    }
 
-	@Override
-	public Date getDueDate() {
-		return new GregorianCalendar(2017, Calendar.MAY, 30).getTime();
-	}
+    @Override
+    public Date getDueDate() {
+        return new GregorianCalendar(2017, Calendar.MAY, 30).getTime();
+    }
 
-	@Override
-	public Date getIssueDate() {
-		return new GregorianCalendar(2017, Calendar.MAY, 9).getTime();
-	}
+    @Override
+    public Date getIssueDate() {
+        return new GregorianCalendar(2017, Calendar.MAY, 9).getTime();
+    }
 
-	@Override
-	public String getNumber() {
-		return "RE-20170509/505";
-	}
+    @Override
+    public String getNumber() {
+        return "RE-20170509/505";
+    }
 
-	@Override
-	public String getOwnCountry() {
-		return "DE";
-	}
+    @Override
+    public String getOwnCountry() {
+        return "DE";
+    }
 
-	@Override
-	public String getOwnLocation() {
-		return "Stadthausen";
-	}
+    @Override
+    public String getOwnLocation() {
+        return "Stadthausen";
+    }
 
-	@Override
-	public String getOwnOrganisationName() {
-		return "Bei Spiel GmbH";
-	}
+    @Override
+    public String getOwnOrganisationName() {
+        return "Bei Spiel GmbH";
+    }
 
-	@Override
-	public String getOwnStreet() {
-		return "Ecke 12";
-	}
+    @Override
+    public String getOwnStreet() {
+        return "Ecke 12";
+    }
 
-	@Override
-	public String getOwnTaxID() {
-		return "22/815/0815/4";
-	}
+    @Override
+    public String getOwnTaxID() {
+        return "22/815/0815/4";
+    }
 
-	@Override
-	public String getOwnVATID() {
-		return "DE136695976";
-	}
+    @Override
+    public String getOwnVATID() {
+        return "DE136695976";
+    }
 
-	@Override
-	public String getOwnZIP() {
-		return "12345";
-	}
+    @Override
+    public String getOwnZIP() {
+        return "12345";
+    }
 
-	@Override
-	public IZUGFeRDExportableContact getRecipient() {
-		return new Contact();
-	}
+    @Override
+    public IZUGFeRDExportableContact getRecipient() {
+        return new Contact();
+    }
 
-	@Override
-	public String getOwnOrganisationFullPlaintextInfo() {
-		return null;
-	}
+    @Override
+    public String getOwnOrganisationFullPlaintextInfo() {
+        return null;
+    }
 
-	@Override
-	public String getCurrency() {
-		return "EUR";
-	}
+    @Override
+    public String getCurrency() {
+        return "EUR";
+    }
 
-	@Override
-	public IZUGFeRDExportableItem[] getZFItems() {
-		Item[] allItems = new Item[3];
-		Product designProduct = new Product("", "Künstlerische Gestaltung (Stunde): Einer Beispielrechnung", "HUR", new BigDecimal("7.000000"));
-		Product balloonProduct = new Product("", "Luftballon: Bunt, ca. 500ml", "C62", new BigDecimal("19.000000"));
-		Product airProduct = new Product("", "Heiße Luft pro Liter", "LTR", new BigDecimal("19.000000"));
+    @Override
+    public IZUGFeRDExportableItem[] getZFItems() {
+        Item[] allItems = new Item[3];
+        Product designProduct = new Product("", "Künstlerische Gestaltung (Stunde): Einer Beispielrechnung", "HUR", new BigDecimal("7.000000"));
+        Product balloonProduct = new Product("", "Luftballon: Bunt, ca. 500ml", "C62", new BigDecimal("19.000000"));
+        Product airProduct = new Product("", "Heiße Luft pro Liter", "LTR", new BigDecimal("19.000000"));
 
-		allItems[0] = new Item(new BigDecimal("160"), new BigDecimal("1"), designProduct);
-		allItems[1] = new Item(new BigDecimal("0.79"), new BigDecimal("400"), balloonProduct);
-		allItems[2] = new Item(new BigDecimal("0.10"), new BigDecimal("200"), airProduct);
-		return allItems;
-	}
+        allItems[0] = new Item(new BigDecimal("160"), new BigDecimal("1"), designProduct);
+        allItems[1] = new Item(new BigDecimal("0.79"), new BigDecimal("400"), balloonProduct);
+        allItems[2] = new Item(new BigDecimal("0.10"), new BigDecimal("200"), airProduct);
+        return allItems;
+    }
 
-	@Override
-	public String getPaymentTermDescription() {
-		SimpleDateFormat germanDateFormat = new SimpleDateFormat("dd.MM.yyyy");
-		return "Zahlbar ohne Abzug bis zum " + germanDateFormat.format(getDueDate());
-	}
+    @Override
+    public String getPaymentTermDescription() {
+        SimpleDateFormat germanDateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        return "Zahlbar ohne Abzug bis zum " + germanDateFormat.format(getDueDate());
+    }
 
-	@Override
-	public IZUGFeRDAllowanceCharge[] getZFAllowances() {
-		return null;
-	}
+    @Override
+    public IZUGFeRDAllowanceCharge[] getZFAllowances() {
+        return null;
+    }
 
-	@Override
-	public IZUGFeRDAllowanceCharge[] getZFCharges() {
-		return null;
-	}
+    @Override
+    public IZUGFeRDAllowanceCharge[] getZFCharges() {
+        return null;
+    }
 
-	@Override
-	public IZUGFeRDAllowanceCharge[] getZFLogisticsServiceCharges() {
-		return null;
-	}
+    @Override
+    public IZUGFeRDAllowanceCharge[] getZFLogisticsServiceCharges() {
+        return null;
+    }
 
-	@Override
-	public String getReferenceNumber() {
-		return null;
-	}
+    @Override
+    public String getReferenceNumber() {
+        return null;
+    }
 
-	/**
-	 * Create the test case
-	 *
-	 * @param testName name of the test case
-	 */
-	public MustangReaderWriterEdgeTest(String testName) {
-		super(testName);
-	}
+    /**
+     * Create the test case
+     *
+     * @param testName name of the test case
+     */
+    public MustangReaderWriterEdgeTest(String testName) {
+        super(testName);
+    }
 
-	/**
-	 * @return the suite of tests being tested
-	 */
-	public static Test suite() {
-		return new TestSuite(MustangReaderWriterEdgeTest.class);
-	}
+    /**
+     * @return the suite of tests being tested
+     */
+    public static Test suite() {
+        return new TestSuite(MustangReaderWriterEdgeTest.class);
+    }
 
-	// //////// TESTS //////////////////////////////////////////////////////////////////////////////////////////
+    // //////// TESTS //////////////////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * The importer test imports from ./src/test/MustangGnuaccountingBeispielRE-20170509_505.pdf to check the values.
-	 * --> as only Name Ascending is supported for Test Unit sequence, I renamed the this test-A-Export to run before
-	 * testZExport
-	 *
-	 * @throws IOException
-	 */
+    /**
+     * The importer test imports from ./src/test/MustangGnuaccountingBeispielRE-20170509_505.pdf to check the values.
+     * --> as only Name Ascending is supported for Test Unit sequence, I renamed the this test-A-Export to run before
+     * testZExport
+     *
+     * @throws IOException
+     */
 
-	public void testAImport() throws IOException {
-		InputStream inputStream = this.getClass().getResourceAsStream("/MustangGnuaccountingBeispielRE-20170509_505.pdf");
-		ZUGFeRDImporter zi = new ZUGFeRDImporter(inputStream);
+    public void testAImport() throws IOException {
+        InputStream inputStream = this.getClass().getResourceAsStream("/MustangGnuaccountingBeispielRE-20170509_505.pdf");
+        ZUGFeRDImporter zi = new ZUGFeRDImporter(inputStream);
 
-		// Reading ZUGFeRD
-		assertEquals(zi.getAmount(), "571.04");
-		assertEquals(zi.getBIC(), getTradeSettlementPayment()[0].getOwnBIC());
-		assertEquals(zi.getBLZ(), getTradeSettlementPayment()[0].getOwnBLZ());
-		assertEquals(zi.getIBAN(), getTradeSettlementPayment()[0].getOwnIBAN());
-		assertEquals(zi.getKTO(), getTradeSettlementPayment()[0].getOwnKto());
-		assertEquals(zi.getHolder(), getOwnOrganisationName());
-		assertEquals(zi.getDueDate(), "20170530");
-		assertEquals(zi.getForeignReference(), getNumber());
-		assertEquals(zi.getDocumentCode(), "380");
+        // Reading ZUGFeRD
+        assertEquals(zi.getAmount(), "571.04");
+        assertEquals(zi.getBIC(), getTradeSettlementPayment()[0].getOwnBIC());
+        assertEquals(zi.getBLZ(), getTradeSettlementPayment()[0].getOwnBLZ());
+        assertEquals(zi.getIBAN(), getTradeSettlementPayment()[0].getOwnIBAN());
+        assertEquals(zi.getKTO(), getTradeSettlementPayment()[0].getOwnKto());
+        assertEquals(zi.getHolder(), getOwnOrganisationName());
+        assertEquals(zi.getDueDate(), "20170530");
+        assertEquals(zi.getForeignReference(), getNumber());
+        assertEquals(zi.getDocumentCode(), "380");
 
-	}
+    }
 
-	/**
-	 * The exporter test bases on @{code ./src/test/MustangGnuaccountingBeispielRE-20140703_502blanko.pdf}, adds metadata,
-	 * writes
-	 * to @{code ./target/testout-*} and then imports to check the values.
-	 * It would not make sense to have it run before the less complex importer test (which is probably redundant)
-	 * --> as only Name Ascending is supported for Test Unit sequence, I renamed the Exporter Test test-Z-Export
-	 */
-	public void testEdgeExport() throws Exception {
+    /**
+     * The exporter test bases on @{code ./src/test/MustangGnuaccountingBeispielRE-20140703_502blanko.pdf}, adds metadata,
+     * writes
+     * to @{code ./target/testout-*} and then imports to check the values.
+     * It would not make sense to have it run before the less complex importer test (which is probably redundant)
+     * --> as only Name Ascending is supported for Test Unit sequence, I renamed the Exporter Test test-Z-Export
+     */
+    // TEST eliminated for Seeburger use case due to old JAXB use
+    public void __testEdgeExport() throws Exception {
 
-		final String TARGET_PDF = "./target/testout-MustangGnuaccountingBeispielRE-20170509_505newEdge.pdf";
-		// the writing part
+        final String TARGET_PDF = "./target/testout-MustangGnuaccountingBeispielRE-20170509_505newEdge.pdf";
+        // the writing part
 
-		try (InputStream SOURCE_PDF =
-					 this.getClass().getResourceAsStream("/MustangGnuaccountingBeispielRE-20170509_505PDFA3.pdf");
+        try (InputStream SOURCE_PDF =
+                     this.getClass().getResourceAsStream("/MustangGnuaccountingBeispielRE-20170509_505PDFA3.pdf");
 
-			 ZUGFeRDExporter ze = new ZUGFeRDExporterFromA3Factory()
-					 .setProducer("My Application")
-					 .setCreator(System.getProperty("user.name"))
-					 .ignorePDFAErrors()
-					 .load(SOURCE_PDF)) {
-			ze.setZUGFeRDVersion(1);
-			ze.PDFattachZugferdFile(this);
-			String theXML = new String(ze.getProvider().getXML());
-			assertTrue(theXML.contains("<rsm:CrossIndustryDocument"));
-			ze.export(TARGET_PDF);
-		}
+             ZUGFeRDExporter ze = new ZUGFeRDExporterFromA3Factory()
+                     .setProducer("My Application")
+                     .setCreator(System.getProperty("user.name"))
+                     .ignorePDFAErrors()
+                     .load(SOURCE_PDF)) {
+            ze.setZUGFeRDVersion(1);
+            ze.PDFattachZugferdFile(this);
+            String theXML = new String(ze.getProvider().getXML());
+            assertTrue(theXML.contains("<rsm:CrossIndustryDocument"));
+            ze.export(TARGET_PDF);
+        }
 
-		// now check the contents (like MustangReaderTest)
-		ZUGFeRDImporter zi = new ZUGFeRDImporter(TARGET_PDF);
+        // now check the contents (like MustangReaderTest)
+        ZUGFeRDImporter zi = new ZUGFeRDImporter(TARGET_PDF);
 
-		// Reading ZUGFeRD
-		assertEquals(zi.getAmount(), "571.04");
-		assertEquals(zi.getBIC(), getTradeSettlementPayment()[0].getOwnBIC());
-		assertEquals(zi.getBLZ(), getTradeSettlementPayment()[0].getOwnBLZ());
-		assertEquals(zi.getIBAN(), getTradeSettlementPayment()[0].getOwnIBAN());
-		assertEquals(zi.getKTO(), getTradeSettlementPayment()[0].getOwnKto());
-		assertEquals(zi.getHolder(), getOwnOrganisationName());
-		assertEquals(zi.getForeignReference(), getNumber());
-	}
+        // Reading ZUGFeRD
+        assertEquals(zi.getAmount(), "571.04");
+        assertEquals(zi.getBIC(), getTradeSettlementPayment()[0].getOwnBIC());
+        assertEquals(zi.getBLZ(), getTradeSettlementPayment()[0].getOwnBLZ());
+        assertEquals(zi.getIBAN(), getTradeSettlementPayment()[0].getOwnIBAN());
+        assertEquals(zi.getKTO(), getTradeSettlementPayment()[0].getOwnKto());
+        assertEquals(zi.getHolder(), getOwnOrganisationName());
+        assertEquals(zi.getForeignReference(), getNumber());
+    }
 
 }
