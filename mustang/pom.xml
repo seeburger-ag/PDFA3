@@ -149,9 +149,8 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.0.1</version>
                 <configuration>
-
                     <excludePackageNames>org.mustangproject.ZUGFeRD.model.*</excludePackageNames>
-
+                    <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
             <plugin>
