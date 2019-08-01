@@ -4,7 +4,7 @@
 
     <groupId>com.seeburger.ZUGFeRD</groupId>
     <artifactId>mustang</artifactId>
-    <version>1.7.2.SEE3</version>
+    <version>1.7.2.SEE4-SNAPSHOT</version>
 
     <packaging>jar</packaging>
     <name>Mustang</name>
@@ -16,7 +16,7 @@
       <connection>scm:git:git@github.com:seeburger-ag/PDFA3.git</connection>
       <developerConnection>scm:git:git@github.com:seeburger-ag/PDFA3.git</developerConnection>
       <url>scm:git:git@github.com:seeburger-ag/PDFA3.git</url>
-      <tag>mustang-1.7.2.SEE3</tag>
+      <tag>HEAD</tag>
     </scm>
 
     <repositories>
