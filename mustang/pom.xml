@@ -19,33 +19,6 @@
       <tag>HEAD</tag>
     </scm>
 
-    <repositories>
-        <repository><!-- for jargs -->
-            <id>sonatype-oss-public</id>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
-
-    <!-- SEEBURGER repository changes -->
-   <distributionManagement>
-      <repository>
-          <id>release</id>
-          <url>http://repo.seeburger.de/archiva/repository/release/</url>
-      </repository>
-      <snapshotRepository>
-          <id>snapshot</id>
-          <url>http://repo.seeburger.de/archiva/repository/snapshot/</url>
-      </snapshotRepository>
-   </distributionManagement>
-
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.global.server>github</github.global.server>
@@ -227,4 +200,17 @@
             </roles>
         </developer>
     </developers>
+
+   <!-- SEEBURGER repository changes -->
+   <distributionManagement>
+      <repository>
+          <id>release</id>
+          <url>http://repo.seeburger.de/archiva/repository/release/</url>
+      </repository>
+      <snapshotRepository>
+          <id>snapshot</id>
+          <url>http://repo.seeburger.de/archiva/repository/snapshot/</url>
+      </snapshotRepository>
+   </distributionManagement>
+
 </project>
