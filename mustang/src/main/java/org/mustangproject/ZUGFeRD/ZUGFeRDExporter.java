@@ -58,6 +58,12 @@ public class ZUGFeRDExporter implements Closeable {
 
     private boolean isFacturX = false;
 
+    // Urgent implementation of ZUGFeRD 2.2.1 based on the existing Mustang
+    private boolean isZUGFeRD_2p1p1 = false;
+
+    // Speciifc metaData version in case of XRechnung
+    private String XRechnungVersion = "1p2"; // Default XRechnung as of late 2020
+
     /**
      * To use the ZUGFeRD exporter, implement IZUGFeRDExportableTransaction in
      * yourTransaction (which will require you to implement Product, Item and
@@ -134,7 +140,14 @@ public class ZUGFeRDExporter implements Closeable {
         additionalXMLs.put(filename, xml);
     }
 
-    public String getNamespaceForVersion(int ver) {
+    public String getNamespaceForVersion(int ver)
+    {
+    	// In the case of XRechnung, it is the same as Factur-X
+    	if ((this.isZUGFeRD_2p1p1) && (this.profile == ZUGFeRDConformanceLevel.XRECHNUNG))
+    	{
+    		return "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#";
+    	}
+
         if (isFacturX) {
             return "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#";
         } else if (ver == 1) {
@@ -147,7 +160,14 @@ public class ZUGFeRDExporter implements Closeable {
         }
     }
 
-    public String getPrefixForVersion(int ver) {
+    public String getPrefixForVersion(int ver)
+    {
+    	// In the case of XRechnung, it is the same as Factur-X
+    	if ((this.isZUGFeRD_2p1p1) && (this.profile == ZUGFeRDConformanceLevel.XRECHNUNG))
+    	{
+    		return "fx";
+    	}
+
         if (isFacturX) {
             return "fx";
         } else {
@@ -155,7 +175,13 @@ public class ZUGFeRDExporter implements Closeable {
         }
     }
 
-    public String getFilenameForVersion(int ver) {
+    public String getFilenameForVersion(int ver)
+    {
+    	if ((this.isZUGFeRD_2p1p1) && (this.profile == ZUGFeRDConformanceLevel.XRECHNUNG))
+    	{
+    		return "xrechnung.xml";
+    	}
+
         if (isFacturX) {
             return "factur-x.xml";
         } else {
@@ -193,6 +219,18 @@ public class ZUGFeRDExporter implements Closeable {
         setZUGFeRDVersion(2);
         isFacturX = true;
     }
+
+    public void setZUGFeRD211(boolean isZUGFeRD_2p1p1)
+    {
+    	this.isZUGFeRD_2p1p1 = isZUGFeRD_2p1p1;
+    }
+
+
+    public void setXRechnungSpecificVersion(String XRechnungVersion)
+    {
+    	this.XRechnungVersion = XRechnungVersion;
+    }
+
 
     /**
      * All files are PDF/A-3, setConformance refers to the level conformance.
@@ -332,7 +370,18 @@ public class ZUGFeRDExporter implements Closeable {
 
         xmlProvider.generateXML(trans);
         String filename = getFilenameForVersion(ZFVersion);
-        PDFAttachGenericFile(doc, filename, "Alternative",
+        String relationship = "Alternative";
+        // ZUGFeRD 2.1.1 Technical Supplement | Part A | 2.2.2. Data Relationship
+        if (this.isZUGFeRD_2p1p1)
+        {
+        	if ((this.profile == ZUGFeRDConformanceLevel.MINIMUM) ||
+        		(this.profile == ZUGFeRDConformanceLevel.BASICWL))
+        	{
+        		relationship = "Data";
+        	}
+        }
+
+        PDFAttachGenericFile(doc, filename, relationship,
                 "Invoice metadata conforming to ZUGFeRD standard (http://www.ferd-net.de/front_content.php?idcat=231&lang=4)",
                 "text/xml", xmlProvider.getXML());
         for (String filenameAdditional : additionalXMLs.keySet()) {
@@ -507,10 +556,24 @@ public class ZUGFeRDExporter implements Closeable {
      */
     protected void addXMP(XMPMetadata metadata) {
 
+    	String metaDataVersion = "1.0";
+    	// If we have ZUGFeRD 2.1.1 and not factur-x the version string is 2p0 (according to the spec)
+    	// If there is XRechnung, the version is settable from outside!
+    	if (this.isZUGFeRD_2p1p1)
+    	{
+    		if (!this.isFacturX)
+    		{
+    			metaDataVersion = "2p0";
+    		} else if (this.profile == ZUGFeRDConformanceLevel.XRECHNUNG)
+    		{
+    			metaDataVersion = this.XRechnungVersion;
+    		}
+    	}
+
         if (attachZUGFeRDHeaders) {
             XMPSchemaZugferd zf = new XMPSchemaZugferd(metadata, profile,
                     getNamespaceForVersion(ZFVersion), getPrefixForVersion(ZFVersion),
-                    getFilenameForVersion(ZFVersion));
+                    getFilenameForVersion(ZFVersion), metaDataVersion);
 
             metadata.addSchema(zf);
         }

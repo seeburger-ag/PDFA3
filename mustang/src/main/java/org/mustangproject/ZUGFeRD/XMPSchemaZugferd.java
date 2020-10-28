@@ -34,7 +34,8 @@ public class XMPSchemaZugferd extends XMPSchema {
 	/**
 	 * This is what needs to be added to the RDF metadata - basically the name of the embedded Zugferd file
 	 */
-	public XMPSchemaZugferd(XMPMetadata metadata, ZUGFeRDConformanceLevel conformanceLevel, String URN, String prefix, String filename) {
+	public XMPSchemaZugferd(XMPMetadata metadata, ZUGFeRDConformanceLevel conformanceLevel,
+			                String URN, String prefix, String filename, String versionValue) {
 		super(metadata, URN, prefix, "ZUGFeRD Schema");
 
 		setAboutAsSimple("");
@@ -48,6 +49,6 @@ public class XMPSchemaZugferd extends XMPSchema {
 		setTextPropertyValue("ConformanceLevel", conformanceLevelValue);
 		setTextPropertyValue("DocumentType", "INVOICE");
 		setTextPropertyValue("DocumentFileName", filename);
-		setTextPropertyValue("Version", "1.0");
+		setTextPropertyValue("Version", versionValue);
 	}
 }
