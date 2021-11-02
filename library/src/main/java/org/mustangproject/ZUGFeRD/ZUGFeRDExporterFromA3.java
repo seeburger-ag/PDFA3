@@ -481,8 +481,9 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 		metadata.addSchema(pdfaex);
 	}
 
-	private void removeCidSet(PDDocumentCatalog catalog, PDDocument doc) {
-
+	private void removeCidSet(PDDocumentCatalog catalog, PDDocument doc)
+	    throws IOException
+	{
 		// https://github.com/ZUGFeRD/mustangproject/issues/249
 
 		COSName cidSet = COSName.getPDFName("CIDSet");
@@ -503,12 +504,12 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 							if (typedFont.getDescendantFont() instanceof PDCIDFontType2) {
 								PDCIDFontType2 f = (PDCIDFontType2) typedFont.getDescendantFont();
 								PDFontDescriptor fontDescriptor = pdFont.getFontDescriptor();
-								
+
 								fontDescriptor.getCOSObject().removeItem(cidSet);
 							}
 						}
 					} catch (IOException e) {
-						e.printStackTrace();
+						throw e;
 					}
 					// do stuff with the font
 				}
@@ -583,14 +584,16 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 	 * Reads the XMPMetadata from the PDDocument, if it exists.
 	 * Otherwise creates XMPMetadata.
 	 */
-	protected XMPMetadata getXmpMetadata() {
+	protected XMPMetadata getXmpMetadata()
+	    throws IOException
+	{
 		PDMetadata meta = doc.getDocumentCatalog().getMetadata();
 		if (meta != null) {
 			try {
 				DomXmpParser xmpParser = new DomXmpParser();
 				return xmpParser.parse(meta.toByteArray());
-			} catch (XmpParsingException | IOException e) {
-				// TODO use logging or handle the error somehow
+			} catch (XmpParsingException e) {
+				throw new IOException(e);
 			}
 		}
 		return XMPMetadata.createXMPMetadata();
@@ -724,7 +727,9 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 	/**
 	 * Adds an OutputIntent and the sRGB color profile if no OutputIntent exist
 	 */
-	protected void addSRGBOutputIntend() {
+	protected void addSRGBOutputIntend()
+	    throws IOException
+	{
 		if (!doc.getDocumentCatalog().getOutputIntents().isEmpty()) {
 			return;
 		}
@@ -740,7 +745,7 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 				doc.getDocumentCatalog().addOutputIntent(intent);
 			}
 		} catch (IOException e) {
-			// TODO use logging or handle the error somehow
+			throw e;
 		}
 	}
 
