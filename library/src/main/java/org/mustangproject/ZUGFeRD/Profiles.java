@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 public class Profiles {
 	static Map<String, Profile> zf2Map = Stream.of(new Object[][]{
 			{"MINIMUM", new Profile("MINIMUM", "urn:factur-x.eu:1p0:minimum")},
+			{"CIUS", new Profile("CIUS", "urn:factur-x.eu:1p0:cius")},
 			{"BASICWL", new Profile("BASICWL", "urn:factur-x.eu:1p0:basicwl")},
 			{"BASIC", new Profile("BASIC", "urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic")},
 			{"EN16931", new Profile("EN16931", "urn:cen.eu:en16931:2017")},
