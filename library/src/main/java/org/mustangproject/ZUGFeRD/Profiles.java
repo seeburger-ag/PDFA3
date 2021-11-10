@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 public class Profiles {
 	static Map<String, Profile> zf2Map = Stream.of(new Object[][]{
 			{"MINIMUM", new Profile("MINIMUM", "urn:factur-x.eu:1p0:minimum")},
-			{"CIUS", new Profile("CIUS", "urn:factur-x.eu:1p0:cius")},
+			{"CIUS", new Profile("CIUS", "urn:factur-x.eu:1p0:cius")}, // TODO: find out what namespace ID CIUS has
 			{"BASICWL", new Profile("BASICWL", "urn:factur-x.eu:1p0:basicwl")},
 			{"BASIC", new Profile("BASIC", "urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic")},
 			{"EN16931", new Profile("EN16931", "urn:cen.eu:en16931:2017")},
@@ -58,4 +58,31 @@ public class Profiles {
 		return getByName(name, ZUGFeRDExporterFromA3.DefaultZUGFeRDVersion);
 	}
 
+
+	/**
+	 * Obtains a profile by name, disregarding version. First searches among
+	 * 1.x profiles and fatre that among 2.x profiles.
+	 *
+	 * @param name profile name to search for
+	 *
+	 * @return a profile matching the requested name
+	 */
+	public static Profile getByNameDisregardingVersion(String name)
+	{
+		Profile result = null;
+
+		result = zf1Map.get(name.toUpperCase());
+
+		if (result == null)
+		{
+			result = zf2Map.get(name.toUpperCase());
+		}
+
+		if (result==null)
+		{
+			throw new RuntimeException("Profile " + name + " not found");
+		}
+
+		return result;
+	}
 }

@@ -639,7 +639,7 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 	    throws IOException
 	{
 		PDMetadata meta = doc.getDocumentCatalog().getMetadata();
-		if (meta != null) {
+		if ((meta != null) && (meta.getLength() > 0)) {
 			try {
 				DomXmpParser xmpParser = new DomXmpParser();
 				return xmpParser.parse(meta.toByteArray());
