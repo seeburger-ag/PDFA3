@@ -108,7 +108,7 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 	@Deprecated
 	protected String subject;
 
-	private PDDocument doc;
+	protected PDDocument doc;
 
 	private HashMap<String, byte[]> additionalXMLs = new HashMap<String, byte[]>();
 
@@ -119,6 +119,10 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
     // Specific metaData version in case of XRechnung. We need it to be settable
 	// by the caller if necessary.
 	protected String XRechnungVersion = null; // Default XRechnung as of late 2021 is 2p0
+
+	// Special flag for possibly setting a legacy meta-data version 1.0 in case
+	// Of ZUGFeRD 2.0 - early versions of Mustang used to do it.
+	protected boolean isLegacy20Version = false;
 
 
 	/**
@@ -251,6 +255,18 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
     	this.XRechnungVersion = XRechnungVersion;
     }
 
+
+
+    /**
+     * 	Sets the special flag for possibly setting a legacy meta-data version 1.0 in case
+     *  of ZUGFeRD 2.0 - early versions of Mustang used to do it.
+     */
+    public void setLegacy20Version()
+    {
+    	this.isLegacy20Version = true;
+    }
+
+
 	/***
 	 * Generate ZF2.0/2.1 files with filename zugferd-invoice.xml instead of factur-x.xml
 	 */
@@ -330,6 +346,24 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 			close();
 		}
 	}
+
+
+	/**
+	 * Embeds an external file (generic - any type allowed) in the PDF.
+	 * The embedding is done in the default PDF document.
+	 *
+	 * @param filename     name of the file that will become attachment name in the PDF
+	 * @param relationship how the file relates to the content, e.g. "Alternative"
+	 * @param description  Human-readable description of the file content
+	 * @param subType      type of the data e.g. could be "text/xml" - mime like
+	 * @param data         the binary data of the file/attachment
+	 * @throws java.io.IOException if anything is wrong with filename
+	 */
+	public void PDFAttachGenericFile(String filename, String relationship, String description,
+									 String subType, byte[] data) throws IOException {
+		PDFAttachGenericFile(this.doc, filename, relationship, description, subType, data);
+	}
+
 
 	/**
 	 * Embeds an external file (generic - any type allowed) in the PDF.
@@ -498,6 +532,12 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 	protected void addXMP(XMPMetadata metadata) {
 
     	String metaDataVersion = null; // default will be used
+
+    	// Legacy 2.0 behavior
+    	if (this.isLegacy20Version)
+    	{
+    		metaDataVersion = "1.0";
+    	} else
     	// The XRechnung version may be settable from outside.
     	if ((this.XRechnungVersion != null) && (this.profile != null) &&
     		this.profile.getName().equalsIgnoreCase(Profiles.getByName("XRECHNUNG").getName()))
