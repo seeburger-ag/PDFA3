@@ -30,6 +30,8 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -125,5 +127,6 @@ public class ZF2ZInvoiceImporterTest extends ResourceCase  {
 		assertEquals(new BigDecimal("11.07"),tc.getGrandTotal());
 
 	}
+
 
 }
