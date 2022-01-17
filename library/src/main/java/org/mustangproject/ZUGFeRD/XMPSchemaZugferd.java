@@ -33,6 +33,24 @@ public class XMPSchemaZugferd extends XMPSchema {
 
 	/***
 	 * This is what needs to be added to the RDF metadata - basically the name of the embedded Zugferd file
+	 *
+	 * @param metadata the xmp to be added to
+	 * @param zfVersion which ZF version to use (2 for FX)
+	 * @param isFacturX whether to export as Factur-X
+	 * @param conformanceLevel e.g.  conformanceLevel.EN16931
+	 * @param URN the xml URI for the XMP
+	 * @param prefix the xml namespace prefix for the XMP, zf for ZUGFeRD, fx for Factur-X
+	 * @param filename the filename of the invoice
+	 */
+	public XMPSchemaZugferd(XMPMetadata metadata, int zfVersion, boolean isFacturX, Profile conformanceLevel,
+			                String URN, String prefix, String filename) {
+		this(metadata, zfVersion, isFacturX, conformanceLevel, URN, prefix, filename, null);
+	}
+
+
+	/***
+	 * This is what needs to be added to the RDF metadata - basically the name of the embedded Zugferd file
+	 *
 	 * @param metadata the xmp to be added to
 	 * @param zfVersion which ZF version to use (2 for FX)
 	 * @param isFacturX whether to export as Factur-X
@@ -60,5 +78,14 @@ public class XMPSchemaZugferd extends XMPSchema {
 			}
 		}
 		setTextPropertyValue("Version", version);
+	}
+
+    /***
+	 * Specify a custom XMP metadata document type
+	 * @param type INVOICE or ORDER
+	 */
+	public XMPSchemaZugferd setType(String type) {
+		setTextPropertyValue("DocumentType", type);
+		return this;
 	}
 }
