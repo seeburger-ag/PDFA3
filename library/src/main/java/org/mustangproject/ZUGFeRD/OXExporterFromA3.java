@@ -223,6 +223,24 @@ public class OXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 		}
 	}
 
+
+	/**
+	 * Embeds an external file (generic - any type allowed) in the PDF.
+	 * The embedding is done in the default PDF document.
+	 *
+	 * @param filename     name of the file that will become attachment name in the PDF
+	 * @param relationship how the file relates to the content, e.g. "Alternative"
+	 * @param description  Human-readable description of the file content
+	 * @param subType      type of the data e.g. could be "text/xml" - mime like
+	 * @param data         the binary data of the file/attachment
+	 * @throws java.io.IOException if anything is wrong with filename
+	 */
+	public void PDFAttachGenericFile(String filename, String relationship, String description,
+									 String subType, byte[] data) throws IOException {
+		PDFAttachGenericFile(this.doc, filename, relationship, description, subType, data);
+	}
+
+
 	/**
 	 * Embeds an external file (generic - any type allowed) in the PDF.
 	 *
@@ -438,14 +456,14 @@ public class OXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 	 * Reads the XMPMetadata from the PDDocument, if it exists.
 	 * Otherwise creates XMPMetadata.
 	 */
-	protected XMPMetadata getXmpMetadata() {
+	protected XMPMetadata getXmpMetadata() throws IOException {
 		PDMetadata meta = doc.getDocumentCatalog().getMetadata();
-		if (meta != null) {
+		if ((meta != null) && (meta.getLength() > 0)) {
 			try {
 				DomXmpParser xmpParser = new DomXmpParser();
 				return xmpParser.parse(meta.toByteArray());
 			} catch (XmpParsingException | IOException e) {
-				// TODO use logging or handle the error somehow
+				throw new IOException(e);
 			}
 		}
 		return XMPMetadata.createXMPMetadata();
@@ -490,7 +508,7 @@ public class OXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 				// This should be impossible, because it would occur only if an illegal
 				// conformance level is supplied,
 				// however the enum enforces that the conformance level is valid.
-				throw new Error(ex);
+				throw new RuntimeException(ex);
 			}
 		}
 		pdfaid.setPart(3);
@@ -579,7 +597,7 @@ public class OXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 	/**
 	 * Adds an OutputIntent and the sRGB color profile if no OutputIntent exist
 	 */
-	protected void addSRGBOutputIntend() {
+	protected void addSRGBOutputIntend() throws IOException {
 		if (!doc.getDocumentCatalog().getOutputIntents().isEmpty()) {
 			return;
 		}
@@ -595,7 +613,7 @@ public class OXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 				doc.getDocumentCatalog().addOutputIntent(intent);
 			}
 		} catch (IOException e) {
-			// TODO use logging or handle the error somehow
+			throw e;
 		}
 	}
 
