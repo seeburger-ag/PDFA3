@@ -44,6 +44,7 @@ import org.apache.xmpbox.type.BadFieldValueException;
 import org.apache.xmpbox.xml.DomXmpParser;
 import org.apache.xmpbox.xml.XmpParsingException;
 import org.apache.xmpbox.xml.XmpSerializer;
+import org.mustangproject.EStandard;
 import org.mustangproject.FileAttachment;
 
 import javax.activation.DataSource;
@@ -103,6 +104,12 @@ public class OXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 	 */
 	@Deprecated
 	protected String subject;
+
+	/**
+	 * OrderX document type. As of version 1.0 it may be
+	 * ORDER, ORDER_RESPONSE, or ORDER_CHANGE
+	 */
+	protected String orderXDocumentType = "ORDER";
 
 
 	private HashMap<String, byte[]> additionalXMLs = new HashMap<String, byte[]>();
@@ -392,6 +399,20 @@ public class OXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 		return this;
 	}
 
+	/**
+	 * Sets the property orderXDocumentType.
+	 *
+	 * @param orderXDocumentType new value. Expected: ORDER, ORDER_RESPONSE, or ORDER_CHANGE
+	 *
+	 * @return this exporter
+	 */
+	public OXExporterFromA3 setOrderXDocumentType(String orderXDocumentType)
+	{
+		this.orderXDocumentType = orderXDocumentType;
+
+		return this;
+	}
+
 	protected OXExporterFromA3 setAttachZUGFeRDHeaders(boolean attachHeaders) {
 		this.attachZUGFeRDHeaders = attachHeaders;
 		return this;
@@ -411,11 +432,11 @@ public class OXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 			XMPSchemaZugferd zf = new XMPSchemaZugferd(metadata, 1, true, xmlProvider.getProfile(),
 					"urn:factur-x:pdfa:CrossIndustryDocument:1p0#", "fx",
 					"order-x.xml");
-			zf.setType("ORDER");
+			zf.setType(this.orderXDocumentType);
 
 			metadata.addSchema(zf);
 			// also add the schema extensions...
-			XMPSchemaPDFAExtensions pdfaex = new XMPSchemaPDFAExtensions(this, metadata, 1, attachZUGFeRDHeaders);
+			XMPSchemaPDFAExtensions pdfaex = new XMPSchemaPDFAExtensions(this, metadata, 1, attachZUGFeRDHeaders, EStandard.orderx);
 			pdfaex.setZUGFeRDVersion(1);
 			metadata.addSchema(pdfaex);
 		}
@@ -442,7 +463,7 @@ public class OXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 		xmlProvider.generateXML(trans);
 		String filename = "order-x.xml";
 		PDFAttachGenericFile(doc, filename, "Alternative",
-				"Invoice metadata conforming to ZUGFeRD standard (http://www.ferd-net.de/front_content.php?idcat=231&lang=4)",
+				"Order metadata conforming to the Order-X standard (https://www.ferd-net.de/standards/order-x/index.html)",
 				"text/xml", xmlProvider.getXML());
 
 		for (FileAttachment attachment : fileAttachments) {
