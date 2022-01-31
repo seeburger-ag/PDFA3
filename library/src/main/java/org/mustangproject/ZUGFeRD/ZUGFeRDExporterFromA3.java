@@ -655,7 +655,7 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
         // ZUGFeRD 2.1.1 Technical Supplement | Part A | 2.2.2. Data Relationship
         // See documentation ZUGFeRD211_EN/Documentation/ZUGFeRD-2.1.1 - Specification_TA_Part-A.pdf
         // https://www.ferd-net.de/standards/zugferd-2.1.1/index.html
-        if (ZFVersion >= 2)
+        if ((this.profile != null) && (ZFVersion >= 2))
         {
         	if (this.profile.getName().equalsIgnoreCase(Profiles.getByName("MINIMUM").getName()) ||
         		this.profile.getName().equalsIgnoreCase(Profiles.getByName("BASICWL").getName()))
