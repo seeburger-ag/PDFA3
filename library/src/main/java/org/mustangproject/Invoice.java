@@ -56,8 +56,14 @@ public class Invoice implements IExportableTransaction {
 	protected Date invoiceReferencedIssueDate;
 	protected String specifiedProcuringProjectID = null;
 	protected String specifiedProcuringProjectName = null;
+<<<<<<< HEAD
 
   public Invoice() {
+=======
+	protected String despatchAdviceReferencedDocumentID = null;
+
+	public Invoice() {
+>>>>>>> refs/remotes/origin/master
 		ZFItems = new ArrayList<>();
 		setCurrency("EUR");
 	}
@@ -666,6 +672,18 @@ public class Invoice implements IExportableTransaction {
 		this.specifiedProcuringProjectID = specifiedProcuringProjectID;
 		return this;
 	}
+
+	@Override
+	public String getDespatchAdviceReferencedDocumentID() {
+		return despatchAdviceReferencedDocumentID;
+	}
+
+
+	public Invoice setDespatchAdviceReferencedDocumentID(String despatchAdviceReferencedDocumentID) {
+		this.despatchAdviceReferencedDocumentID = despatchAdviceReferencedDocumentID;
+		return this;
+	}
+
 
 	@Override
 	public String getSpecifiedProcuringProjectName() {

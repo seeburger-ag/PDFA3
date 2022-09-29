@@ -1,3 +1,105 @@
+2.5.6
+=======
+2022-09-22
+
+Removed a unneccessary dependency (ph-jaxb).
+Added some javadoc.
+
+2.5.5
+=======
+2022-09-19
+
+Updated PH-schematron, now also reporting IDs of failed assertions
+
+
+2.5.4
+=======
+2022-09-01
+
+Extend importer PR #281 thanks to weclapp-dev
+Allow to violate CII-SR-450 and specify both ID and Global ID
+
+2.5.3
+=======
+2022-08-15
+
+- Support GlobalIDs(schemedIDs) for Tradeparties and products #280
+- Dependency update #273
+
+2.5.2
+=======
+2022-07-09
+
+- Support validation of XRechnung (CII) 2.2
+- allow to create fx 1 files with command line again
+- is maven build profile to gen xslt, mvn clean package -P generateXSLTFromSchematron
+- OXPullprovider to no longer generate invalid XML if a duedate is set
+- Add missing encodeXML to node payment terms description #278 thanks to weclapp-dev
+
+2.5.1
+=======
+2022-05-12
+
+- upgraded en16931 validation to 1.3.8
+- Be able to embed/write/read Cross Industry Delivery Advice https://www.gs1-germany.de/gs1-standards/umsetzung/fachpublikationen/detailansicht/der-digitale-lieferschein-dls-die-digitale-abloesung-des-papier-lieferscheins/
+- Be able to write UBL 1Lieferschein https://www.bobbie.de/maschinenraum/1lieferschein
+- update xr to v. 2.2 (mandatory as of August)
+- logging output now stderr again, since 2.4.0 it had mistakenly been on stdout
+
+2.5.0
+=======
+2022-04-07
+
+- allow to specify additional files to be attached in command line
+- update to zf 2.2, apparently this also fixes #268
+- update to verapdf 1.20.1 
+- log whether a XML or a PDF file was validated
+- allow 2.1 in RDF metadata in validation for Referenzprofil XRechnung's v 2.1.1
+- XR improvements PR 261 e.g. allowing the XRechnung version to be explicitly set in the PDF
+- allow to specify a tradeparties' legalorganisation i.e. allow to write Factur-X invoices to french authorities
+- allow to add attachments in CLI. Thanks to AlexGeller1 RE #270
+- replaced jargs with apache commons cli as command line parser
+- nicer XML  https://github.com/ZUGFeRD/mustangproject/issues/266 thanks to weclapp-dev
+- XR now also tests paymenttermdescription(#238)
+- allow XRechnung to the Deutsche Bahn: allow to reference a shipping note DespatchAdviceReferencedDocument/IssuerAssignedID #253
+
+
+2.4.0
+=======
+2022-01-13
+
+- issue #255 support order-x
+- switched xrechnung signature to 2.1(.1) as required as of February 
+- xr now checks en16931 profile not extended
+- Validation errors now contain the filename of the failed xslt~schematron
+- PR 257 issue #227 shaded/lightweight jars (thanks a lot to quadrik!)
+- PR 258 Multiple XRechnung improvements like the possibility to set it's version in the PDF metadata (thanks a lot to ivaklinov) 
+- add signature comment into xml
+- upgraded en16931 validation to 1.3.7
+- upgraded xrechnung schematron to 1.6.1
+- changed PDF/A extension scheme name from ZUGFeRD to Factur-X
+- corrected a possible nullpointerexception in contact.getPhone() vs. getName() (thanks to Chritoph W.)
+
+2.3.3
+=======
+2021-12-21
+
+- updated logback from 1.2.3 to 1.2.9 https://github.com/ZUGFeRD/mustangproject/security/dependabot/validator/pom.xml/ch.qos.logback:logback-core/open
+- nor 2021-12-13 nor 2021-12-20 of https://github.com/mergebase/log4j-detector have complained so far
+
+
+2.3.2
+=======
+2021-12-16
+
+- Jacksonability: Invoice and dependent objects can now be Stringified to / restored from a JSON (persistence? XML?) using e.g. Jackson
+- Please note Mustang was *not* affected by log4j CVE-2021-44228 or CVE-2021-45046: this is *not* a security update
+- unknown root elements will now throw separate errors (type 3)
+- added some automated tests
+- Remove faulty '/' from getNodeListByPath call. PR #256, Thanks again to Weclapp-dev
+- Issue 238 Validierungsproblem mit Skonto/do not remove linebreaks in XML
+- Do not trim trailing whitespace in XML submitted by the user, e.g. for XRechnung Skonto in PaymenttermsDescription
+
 2.3.1
 =======
 2021-10-25

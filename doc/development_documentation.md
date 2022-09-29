@@ -6,6 +6,7 @@
 To check if the necessary tools are there, the build is in a stable state and works on your platform, e.g. download and extract https://github.com/ZUGFeRD/mustangproject/archive/master.zip and run ./mvnw clean package
 
 Mvnw is a maven wrapper which will download maven.Maven is the dependency management tool which will download all libraries, their dependencies, and build the whole thing.
+Mvnw is a maven wrapper which will download maven.Maven is the dependency management tool which will download all libraries, their dependencies, and build the whole thing.
 
 You will need a Java JDK, e.g. https://www.azul.com/downloads/zulu-community/?architecture=x86-64-bit&package=jdk
 
@@ -53,6 +54,13 @@ Target platform is java 1.8
 The package can be build with
 ```
 mvnw clean package
+```
+
+In case you also want to generate  XSLT files from new schematron files for the validator please run the profile "generateXSLTFromSchematron"
+(which takes around 20min on my machine)
+
+```
+mvnw clean package -P generateXSLTFromSchematron
 ```
 
 ## Test
@@ -159,7 +167,11 @@ If you added functionality which you need to test in another project before a ne
 install the jar you just generated in your target branch in your local maven cache so it gets picked *instead* of the
 maybe not yet even existing new release version:
 
-`mvn install:install-file -Dfile=mustang-1.7.6-SNAPSHOT.jar -DgroupId=org.mustangproject.ZUGFeRD -DartifactId=mustang -Dversion=1.7.6 -Dpackaging=jar -DgeneratePom=true`
+```
+cd validator/target
+mvn install:install-file -Dfile=validator-2.5.5-SNAPSHOT-shaded.jar -DgroupId=org.mustangproject -DartifactId=validator -Dversion=2.5.5 -Dpackaging=jar -DgeneratePom=true
+```
+This will also work in Gradle given you have the `mavenLocal()` repository activated.
 
 
 ## Release
@@ -171,7 +183,7 @@ Change to the project directory and run
   * `mvn clean install` confirm javadoc is OK with
   * `mvn javadoc:javadoc`. If that works you can 
   * clean the release with `mvn release:clean` and prepare the release with
-  * `mvn release:prepare  -DignoreSnapshots=true` and enter the version numbers. 
+  * `mvn release:prepare` and enter the version numbers. 
   * After that is through you can create a new release via `mvn release:perform`.This will also update the maven repo. 
   
   ![screenshot](development_documentation_screenshot_release.png "Screenshot Release")

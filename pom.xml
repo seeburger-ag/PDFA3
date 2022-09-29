@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.mustangproject</groupId>
     <artifactId>core</artifactId>
-    <version>2.3.2-SNAPSHOT</version>
+    <version>2.5.6-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Mustang</name>
 
@@ -20,7 +20,7 @@
         <connection>scm:git:git://github.com/dexecutor/dependent-tasks-executor.git</connection>
         <developerConnection>scm:git:git@github.com:dexecutor/dexecutor.git</developerConnection>
         <url>https://github.com/dexecutor/dependent-tasks-executor</url>
-      <tag>HEAD</tag>
+      <tag>core-2.3.2</tag>
   </scm>
     <build>
         <pluginManagement>
@@ -67,47 +67,15 @@
                     </altDeploymentRepository>
                 </configuration>
             </plugin>
-            <!--<plugin>
-                <groupId>com.github.github</groupId>
-                <artifactId>site-maven-plugin</artifactId>
-                <version>0.12</version>
-                <configuration>
-                    <message>Maven artifacts for ${project.version}</message>
-                    - git commit message -
-                    <noJekyll>true</noJekyll>
-                    - disable webpage processing -
-                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
-                    - matches distribution management repository url above -
-                    <branch>refs/heads/mvn-repo</branch>
-                    - remote branch name -
-                    <includes>
-                        <include>**/*</include>
-                    </includes>
-                    <merge>true</merge>
-                    <repositoryName>mustangproject</repositoryName>
-                    - github repo name -
-                    <repositoryOwner>ZUGFeRD</repositoryOwner>
-                    - github username -
-                </configuration>
-                <executions>
-                    - run site-maven-plugin's 'site' target as part of the build's normal
-                        'deploy' phase -
-                    <execution>
-                        <goals>
-                            <goal>site</goal>
-                        </goals>
-                        <phase>deploy</phase>
-                    </execution>
-                </executions>
-            </plugin>-->
+
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.8</version>
+                <version>1.6.13</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
@@ -128,18 +96,6 @@
         </plugins>
     </build>
 
-    <repositories>
-        <repository><!-- for jargs -->
-            <id>sonatype-oss-public</id>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>

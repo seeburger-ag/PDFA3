@@ -6,10 +6,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+<<<<<<< HEAD
 import org.mustangproject.ZUGFeRD.IZUGFeRDExportableContact;
 import org.mustangproject.ZUGFeRD.IZUGFeRDExportableTradeParty;
 import org.mustangproject.ZUGFeRD.IZUGFeRDTradeSettlement;
 import org.mustangproject.ZUGFeRD.IZUGFeRDTradeSettlementDebit;
+=======
+import org.mustangproject.ZUGFeRD.*;
+>>>>>>> refs/remotes/origin/master
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -26,6 +30,17 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	protected List<BankDetails> bankDetails = new ArrayList<>();
 	protected List<IZUGFeRDTradeSettlementDebit> debitDetails = new ArrayList<>();
 	protected Contact contact = null;
+	protected LegalOrganisation legalOrg = null;
+	protected SchemedID globalId=null;
+
+	/**
+	 * Default constructor.
+	 * Probably a bad idea but might be needed by jackson or similar
+	 */
+	public TradeParty() {
+
+	}
+
 
 	/**
 	 * Default constructor.
@@ -94,6 +109,13 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 						if (itemChilds.item(itemChildIndex).getLocalName().equals("Name")) {
 							setName(itemChilds.item(itemChildIndex).getTextContent());
 						}
+						if (itemChilds.item(itemChildIndex).getLocalName().equals("GlobalID")) {
+							if (itemChilds.item(itemChildIndex).getAttributes().getNamedItem("schemeID") != null) {
+								SchemedID gid=new SchemedID().setScheme(itemChilds.item(itemChildIndex).getAttributes().getNamedItem("schemeID").getNodeValue()).setId(itemChilds.item(itemChildIndex).getTextContent());
+								addGlobalID(gid);
+							}
+
+						}
 						if (itemChilds.item(itemChildIndex).getLocalName().equals("DefinedTradeContact")) {
 							NodeList contact = itemChilds.item(itemChildIndex).getChildNodes();
 							setContact(new Contact(contact));
@@ -152,6 +174,26 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 		return ID;
 	}
 
+	@Override
+	public String getGlobalID() {
+		if (globalId!=null) {
+			return globalId.getID();
+		}
+		return null;
+	}
+
+
+
+	@Override
+	public String getGlobalIDScheme() {
+		if (globalId!=null) {
+			return globalId.getScheme();
+		}
+		return null;
+
+	}
+
+
 	/**
 	 * if it's a customer, this can e.g. be the customer ID
 	 *
@@ -174,6 +216,11 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 		return this;
 	}
 
+	public TradeParty addGlobalID(SchemedID schemedID) {
+		globalId=schemedID;
+		return this;
+	}
+
 	/***
 	 * required (for senders, if payment is not debit): the BIC and IBAN
 	 * @param s bank credentials
@@ -192,6 +239,16 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	 */
 	public TradeParty addDebitDetails(IZUGFeRDTradeSettlementDebit debitDetail) {
 		debitDetails.add(debitDetail);
+		return this;
+	}
+
+	@Override
+	public IZUGFeRDLegalOrganisation getLegalOrganisation() {
+		return legalOrg;
+	}
+
+	public TradeParty setLegalOrganisation(LegalOrganisation legalOrganisation) {
+		legalOrg=legalOrganisation;
 		return this;
 	}
 

@@ -21,7 +21,9 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,7 @@ import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDNameTreeNode;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
+import org.mustangproject.EStandard;
 import org.mustangproject.Item;
 import org.mustangproject.Product;
 import org.w3c.dom.Document;
@@ -149,7 +152,7 @@ public class ZUGFeRDImporter {
 			/**
 			 * filenames for invoice data (ZUGFeRD v1 and v2, Factur-X)
 			 */
-			if ((filename.equals("ZUGFeRD-invoice.xml") || (filename.equals("zugferd-invoice.xml")) || filename.equals("factur-x.xml")) || filename.equals("xrechnung.xml") || filename.equals("order-x.xml")) {
+			if ((filename.equals("ZUGFeRD-invoice.xml") || (filename.equals("zugferd-invoice.xml")) || filename.equals("factur-x.xml")) || filename.equals("xrechnung.xml") || filename.equals("order-x.xml") || filename.equals("cida.xml")) {
 				containsMeta = true;
 
 				final PDEmbeddedFile embeddedFile = fileSpec.getEmbeddedFile();
@@ -257,8 +260,9 @@ public class ZUGFeRDImporter {
 			case "urn:ferd:CrossIndustryDocument:invoice:1p0:extended":
 			case "urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended":
 				return "EXTENDED";
-		}
-		return "";
+      default:
+        return "";
+    }
 	}
 
 	/**
@@ -302,9 +306,9 @@ public class ZUGFeRDImporter {
 	private String extractIssuerAssignedID(String propertyName) {
 		try {
 			if (getVersion() == 1) {
-				return extractString("//*[local-name() = 'BuyerOrderReferencedDocument']//*[local-name() = 'ID']");
+				return extractString("//*[local-name() = '" + propertyName + "']//*[local-name() = 'ID']");
 			} else {
-				return extractString("//*[local-name() = 'BuyerOrderReferencedDocument']//*[local-name() = 'IssuerAssignedID']");
+				return extractString("//*[local-name() = '" + propertyName + "']//*[local-name() = 'IssuerAssignedID']");
 			}
 		} catch (final Exception e) {
 			Logger.getLogger(ZUGFeRDImporter.class.getName()).log(Level.SEVERE, null, e);
@@ -334,6 +338,21 @@ public class ZUGFeRDImporter {
 			return "";
 		}
 	}
+  
+  public Date getDetailedDeliveryPeriodFrom(){
+    final String toParse = extractString(
+        "//*[local-name() = 'ApplicableHeaderTradeSettlement']" +
+            "//*[local-name() = 'BillingSpecifiedPeriod']" +
+            "//*[local-name() = 'StartDateTime']//*[local-name() = 'DateTimeString']");
+    return tryDate(toParse);
+  }
+  public Date getDetailedDeliveryPeriodTo(){
+    final String toParse = extractString(
+        "//*[local-name() = 'ApplicableHeaderTradeSettlement']" +
+            "//*[local-name() = 'BillingSpecifiedPeriod']" +
+            "//*[local-name() = 'EndDateTime']//*[local-name() = 'DateTimeString']");
+    return tryDate(toParse);
+  }
 
 	/**
 	 * @return the TaxBasisTotalAmount
@@ -633,11 +652,28 @@ public class ZUGFeRDImporter {
 	}
 
 
-	public int getVersion() throws Exception {
+	public EStandard getStandard() throws Exception {
 		if (!containsMeta) {
 			throw new Exception("Not yet parsed");
 		}
 		if (getUTF8().contains("<rsm:CrossIndustryDocument")) {
+			return EStandard.zugferd;
+		} else if (getUTF8().contains("<rsm:CrossIndustryInvoice")) {
+			return EStandard.facturx;
+		} else if (getUTF8().contains("<SCRDMCCBDACIDAMessageStructure")) {
+			return EStandard.despatchadvice;
+		} else if (getUTF8().contains("<rsm:SCRDMCCBDACIOMessageStructure")) {
+			return EStandard.orderx;
+		}
+
+		throw new Exception("ZUGFeRD version could not be determined");
+
+	}
+	public int getVersion() throws Exception {
+		if (!containsMeta) {
+			throw new Exception("Not yet parsed");
+		}
+		if (getUTF8().contains("<rsm:CrossIndustryDocument")||getUTF8().contains("<SCRDMCCBDACIDAMessageStructure")||getUTF8().contains("<rsm:SCRDMCCBDACIOMessageStructure")) {
 			return 1;
 		} else if (getUTF8().contains("<rsm:CrossIndustryInvoice")) {
 			return 2;
@@ -736,8 +772,6 @@ public class ZUGFeRDImporter {
 	public PostalTradeAddress getSellerTradePartyAddress() {
 
 		NodeList nl = null;
-		final PostalTradeAddress address = new PostalTradeAddress();
-
 		try {
 			if (getVersion() == 1) {
 				nl = getNodeListByPath("//*[local-name() = 'CrossIndustryDocument']//*[local-name() = 'SpecifiedSupplyChainTradeTransaction']//*[local-name() = 'ApplicableSupplyChainTradeAgreement']//*[local-name() = 'SellerTradeParty']//*[local-name() = 'PostalTradeAddress']");
@@ -895,6 +929,23 @@ public class ZUGFeRDImporter {
 								node = getNodeByName(node.getChildNodes(), "CalculatedAmount");
 								lineItem.setTax(tryBigDecimal(getNodeValue(node)));
 							}
+<<<<<<< HEAD
+=======
+							node = getNodeByName(nn.getChildNodes(), "BillingSpecifiedPeriod");
+							if (node != null) {
+								final Node start = getNodeByName(node.getChildNodes(), "StartDateTime");
+                Node dateTimeStart = null;
+                if(start != null) {
+                  dateTimeStart = getNodeByName(start.getChildNodes(), "DateTimeString");
+                }
+                final Node end = getNodeByName(node.getChildNodes(), "EndDateTime");
+                Node dateTimeEnd = null;
+                if(end != null) {
+                  dateTimeEnd = getNodeByName(end.getChildNodes(), "DateTimeString");
+                }
+                lineItem.setDetailedDeliveryPeriod(tryDate(dateTimeStart), tryDate(dateTimeEnd));
+              }
+>>>>>>> refs/remotes/origin/master
 
 							node = getNodeByName(nn.getChildNodes(), "SpecifiedTradeSettlementLineMonetarySummation");
 							if (node != null) {
@@ -939,11 +990,8 @@ public class ZUGFeRDImporter {
 		final List<Node> lineItemNodes = new ArrayList<>();
 		NodeList nl = null;
 		try {
-			if (getVersion() == 1) {
-				nl = getNodeListByPath("//*[local-name() = 'CrossIndustryDocument']//*[local-name() = 'SpecifiedSupplyChainTradeTransaction']//*[local-name() = 'IncludedSupplyChainTradeLineItem']");
-			} else {
-				nl = getNodeListByPath("//*[local-name() = 'CrossIndustryInvoice']//*[local-name() = 'SupplyChainTradeTransaction']//*[local-name() = 'IncludedSupplyChainTradeLineItem']");
-			}
+				nl = getNodeListByPath("//*[local-name() = 'IncludedSupplyChainTradeLineItem']");
+
 		} catch (final Exception e) {
 			Logger.getLogger(ZUGFeRDImporter.class.getName()).log(Level.SEVERE, null, e);
 		}
@@ -1001,11 +1049,9 @@ public class ZUGFeRDImporter {
 	 * @return A String or empty String, if no value was found
 	 */
 	private String getNodeValue(Node node) {
-		if (node != null) {
-			if (node.getFirstChild() != null) {
-				return node.getFirstChild().getNodeValue();
-			}
-		}
+    if (node != null && node.getFirstChild() != null) {
+      return node.getFirstChild().getNodeValue();
+    }
 		return "";
 	}
 
@@ -1019,10 +1065,26 @@ public class ZUGFeRDImporter {
 			return new BigDecimal(nodeValue);
 		} catch (final Exception e) {
 			try {
-				return new BigDecimal(Float.valueOf(nodeValue));
+				return BigDecimal.valueOf(Float.valueOf(nodeValue));
 			} catch (final Exception ex) {
 				return new BigDecimal("0.00");
 			}
 		}
 	}
+	private Date tryDate(Node node) {
+    final String nodeValue = getNodeValue(node);
+    if (nodeValue.isEmpty()) {
+      return null;
+    }
+    return tryDate(nodeValue);
+  }
+
+  private static Date tryDate(String toParse) {
+    final SimpleDateFormat formatter = ZUGFeRDDateFormat.DATE.getFormatter();
+    try {
+      return formatter.parse(toParse);
+		} catch (final Exception e) {
+      return null;
+		}
+  }
 }

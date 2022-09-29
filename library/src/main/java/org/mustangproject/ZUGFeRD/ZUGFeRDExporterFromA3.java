@@ -44,6 +44,7 @@ import org.apache.xmpbox.type.BadFieldValueException;
 import org.apache.xmpbox.xml.DomXmpParser;
 import org.apache.xmpbox.xml.XmpParsingException;
 import org.apache.xmpbox.xml.XmpSerializer;
+import org.mustangproject.EStandard;
 import org.mustangproject.FileAttachment;
 
 import javax.activation.DataSource;
@@ -116,6 +117,7 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 	protected int ZFVersion = DefaultZUGFeRDVersion;
 	private boolean attachZUGFeRDHeaders = true;
 
+<<<<<<< HEAD
     // Specific metaData version in case of XRechnung. We need it to be settable
 	// by the caller if necessary.
 	protected String XRechnungVersion = null; // Default XRechnung as of late 2021 is 2p0
@@ -124,6 +126,12 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 	// Of ZUGFeRD 2.0 - early versions of Mustang used to do it.
 	protected boolean isLegacy20Version = false;
 
+=======
+
+	// Specific metaData version in case of XRechnung. We need it to be settable
+	// by the caller if necessary.
+	protected String XRechnungVersion = null; // Default XRechnung as of late 2021 is 2p0
+>>>>>>> refs/remotes/origin/master
 
 	/**
 	 * Makes A PDF/A3a-compliant document from a PDF-A1 compliant document (on the
@@ -247,6 +255,7 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 		return this;
 	}
 
+<<<<<<< HEAD
 	/**
 	 * Sets a specific XRechnung version from outside. This version needs to be present in the
 	 * meta-data as well. The caller may wish to generate a specific version of XRechnung
@@ -268,6 +277,19 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
     public void setLegacy20Version()
     {
     	this.isLegacy20Version = true;
+=======
+
+	/**
+	 * Sets a specific XRechnung version from outside. This version needs to be present in the
+	 * meta-data as well. The caller may wish to generate a specific version of XRechnung
+	 * depending on the time period etc.
+	 *
+	 * @param XRechnungVersion the XRechnung version
+	 */
+    public void setXRechnungSpecificVersion(String XRechnungVersion)
+    {
+    	this.XRechnungVersion = XRechnungVersion;
+>>>>>>> refs/remotes/origin/master
     }
 
 
@@ -537,11 +559,14 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 
     	String metaDataVersion = null; // default will be used
 
+<<<<<<< HEAD
     	// Legacy 2.0 behavior
     	if (this.isLegacy20Version)
     	{
     		metaDataVersion = "1.0";
     	} else
+=======
+>>>>>>> refs/remotes/origin/master
     	// The XRechnung version may be settable from outside.
     	if ((this.XRechnungVersion != null) && (this.profile != null) &&
     		this.profile.getName().equalsIgnoreCase(Profiles.getByName("XRECHNUNG").getName()))
@@ -885,6 +910,28 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 		if (profile != null) {
 			xmlProvider.setProfile(profile);
 		}
+	}
+
+	public ZUGFeRDExporterFromA3 setZUGFeRDVersion(EStandard est, int version) {
+		this.ZFVersion = version;
+		if ((version<1) || (version>2)) {
+			throw new IllegalArgumentException("Version not supported");
+		}
+		int generation=version;
+		if ((est==EStandard.facturx)&&(version==1)) {
+			generation=2;
+		}
+		if (generation == 1) {
+			ZUGFeRD1PullProvider z1p = new ZUGFeRD1PullProvider();
+			disableFacturX();
+			setXMLProvider(z1p);
+		} else if (generation == 2) {
+			ZUGFeRD2PullProvider z2p = new ZUGFeRD2PullProvider();
+			setXMLProvider(z2p);
+		}
+
+
+		return this;
 	}
 
 	@Override
