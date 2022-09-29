@@ -128,8 +128,6 @@ public class ZF2ZInvoiceImporterTest extends ResourceCase  {
 
 	}
 
-<<<<<<< HEAD
-=======
 	public void testXRImport() {
 		boolean hasExceptions=false;
 
@@ -153,6 +151,5 @@ public class ZF2ZInvoiceImporterTest extends ResourceCase  {
 
 	}
 
->>>>>>> refs/remotes/origin/master
 
 }

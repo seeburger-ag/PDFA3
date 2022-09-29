@@ -929,8 +929,6 @@ public class ZUGFeRDImporter {
 								node = getNodeByName(node.getChildNodes(), "CalculatedAmount");
 								lineItem.setTax(tryBigDecimal(getNodeValue(node)));
 							}
-<<<<<<< HEAD
-=======
 							node = getNodeByName(nn.getChildNodes(), "BillingSpecifiedPeriod");
 							if (node != null) {
 								final Node start = getNodeByName(node.getChildNodes(), "StartDateTime");
@@ -945,7 +943,6 @@ public class ZUGFeRDImporter {
                 }
                 lineItem.setDetailedDeliveryPeriod(tryDate(dateTimeStart), tryDate(dateTimeEnd));
               }
->>>>>>> refs/remotes/origin/master
 
 							node = getNodeByName(nn.getChildNodes(), "SpecifiedTradeSettlementLineMonetarySummation");
 							if (node != null) {

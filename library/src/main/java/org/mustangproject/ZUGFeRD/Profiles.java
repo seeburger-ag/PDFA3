@@ -34,14 +34,9 @@ public class Profiles {
 			{"BASIC", new Profile("BASIC", "urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic")},
 			{"EN16931", new Profile("EN16931", "urn:cen.eu:en16931:2017")},
 			{"EXTENDED", new Profile("EXTENDED", "urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended")},
-<<<<<<< HEAD
-			{"XRECHNUNG", new Profile("XRECHNUNG", "urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.1")} 
-=======
 			{"XRECHNUNG", new Profile("XRECHNUNG", "urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2")}
->>>>>>> refs/remotes/origin/master
 
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Profile) data[1]));
-	
 	static Map<String, Profile> zf1Map = Stream.of(new Object[][]{
 			{"BASIC", new Profile("BASIC", "urn:ferd:CrossIndustryDocument:invoice:1p0:basic")},
 			{"COMFORT", new Profile("COMFORT", "urn:ferd:CrossIndustryDocument:invoice:1p0:comfort")},
@@ -49,39 +44,19 @@ public class Profiles {
 
 
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Profile) data[1]));
-<<<<<<< HEAD
-	
 	static Map<String, Profile> ox1Map = Stream.of(new Object[][]{
 			{"BASIC", new Profile("BASIC", "urn:order-x.eu:1p0:basic")},
 			{"COMFORT", new Profile("COMFORT", "urn:order-x.eu:1p0:comfort")},
 			{"EXTENDED", new Profile("EXTENDED", "urn:order-x.eu:1p0:extended")},
-	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Profile) data[1]));
-=======
-	static Map<String, Profile> ox1Map = Stream.of(new Object[][]{
-			{"BASIC", new Profile("BASIC", "urn:order-x.eu:1p0:basic")},
-			{"COMFORT", new Profile("COMFORT", "urn:order-x.eu:1p0:comfort")},
-			{"EXTENDED", new Profile("EXTENDED", "urn:order-x.eu:1p0:extended")},
->>>>>>> refs/remotes/origin/master
 
 
-<<<<<<< HEAD
-	public static Profile getByName(EStandard standard, String name, int version) {
-		if (standard != EStandard.orderx) {
-			return getByName(name, version);
-		} else {
-			Profile result = null;
-			result = ox1Map.get(name.toUpperCase());
-			if (result == null) {
-				throw new RuntimeException("Profile not found");
-			}
-			return result;
-=======
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Profile) data[1]));
 	static Map<String, Profile> dx1Map = Stream.of(new Object[][]{
 			{"PILOT", new Profile("PILOT", "urn:awv-net.de:CIDA:1.0:pilot")}
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Profile) data[1]));
 
 
+	// TODO: IVAN -check compatibility
 	public static Profile getByName(EStandard standard, String name, int version) {
 		if (standard == EStandard.orderx) {
 			Profile result = null;
@@ -104,7 +79,6 @@ public class Profiles {
 			}
 			return getByName(name, generation);
 
->>>>>>> refs/remotes/origin/master
 		}
 	}
 

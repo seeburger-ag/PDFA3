@@ -39,8 +39,6 @@ public class Product implements IZUGFeRDExportableProduct {
 
 	}
 
-<<<<<<< HEAD
-=======
 	@Override
 	public String getGlobalID() {
 		if (globalId == null) {
@@ -64,7 +62,6 @@ public class Product implements IZUGFeRDExportableProduct {
 		return this;
 	}
 
->>>>>>> refs/remotes/origin/master
 
 	public String getSellerAssignedID() {
 		return sellerAssignedID;

@@ -6,14 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-<<<<<<< HEAD
-import org.mustangproject.ZUGFeRD.IZUGFeRDExportableContact;
-import org.mustangproject.ZUGFeRD.IZUGFeRDExportableTradeParty;
-import org.mustangproject.ZUGFeRD.IZUGFeRDTradeSettlement;
-import org.mustangproject.ZUGFeRD.IZUGFeRDTradeSettlementDebit;
-=======
 import org.mustangproject.ZUGFeRD.*;
->>>>>>> refs/remotes/origin/master
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -32,15 +25,6 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	protected Contact contact = null;
 	protected LegalOrganisation legalOrg = null;
 	protected SchemedID globalId=null;
-
-	/**
-	 * Default constructor.
-	 * Probably a bad idea but might be needed by jackson or similar
-	 */
-	public TradeParty() {
-
-	}
-
 
 	/**
 	 * Default constructor.

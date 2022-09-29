@@ -56,14 +56,9 @@ public class Invoice implements IExportableTransaction {
 	protected Date invoiceReferencedIssueDate;
 	protected String specifiedProcuringProjectID = null;
 	protected String specifiedProcuringProjectName = null;
-<<<<<<< HEAD
-
-  public Invoice() {
-=======
 	protected String despatchAdviceReferencedDocumentID = null;
 
 	public Invoice() {
->>>>>>> refs/remotes/origin/master
 		ZFItems = new ArrayList<>();
 		setCurrency("EUR");
 	}
