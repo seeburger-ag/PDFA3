@@ -56,7 +56,6 @@ public class Profiles {
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Profile) data[1]));
 
 
-	// TODO: IVAN -check compatibility
 	public static Profile getByName(EStandard standard, String name, int version) {
 		if (standard == EStandard.orderx) {
 			Profile result = null;

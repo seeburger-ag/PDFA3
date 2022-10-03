@@ -334,6 +334,12 @@ public class DXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 	 */
 	public DXExporterFromA3 setXML(byte[] zugferdData) throws IOException {
 		CustomXMLProvider cus = new CustomXMLProvider();
+		// The Delivery-X profile for custom XML must be "PILOT"
+		// See specification: GS1 Standards, Der digitale Lieferschein (dLS)
+		// Die digitale Ablösung des Papier-Lieferscheins, Version 1.1, April 2022
+		// Chapter 7.1 XMP-Erweiterungsschema für PDF/A-3
+		cus.setProfile(Profiles.getByName(EStandard.despatchadvice, "PILOT", 1));
+
 		cus.setXML(zugferdData);
 		this.setXMLProvider(cus);
 		prepare();
@@ -425,14 +431,17 @@ public class DXExporterFromA3 extends ZUGFeRDExporterFromA3 {
 	protected void addXMP(XMPMetadata metadata) {
 
 		if (attachZUGFeRDHeaders) {
+			// See specification: GS1 Standards, Der digitale Lieferschein (dLS)
+			// Die digitale Ablösung des Papier-Lieferscheins, Version 1.1, April 2022
+			// Chapter 7.1 XMP-Erweiterungsschema für PDF/A-3
 			XMPSchemaZugferd zf = new XMPSchemaZugferd(metadata, 1, true, xmlProvider.getProfile(),
-					"urn:facturx:pdfa:CrossIndustryDocument:despatchadvice:1p0#", "fx",
-					"cida.xml");
+					"urn:factur-x:pdfa:CrossIndustryDocument:despatchadvice:1p0#", "fx",
+					"cida.xml", "1p0");
 			zf.setType(this.despatchAdviceDocumentType);
 
 			metadata.addSchema(zf);
 			// also add the schema extensions...
-			XMPSchemaPDFAExtensions pdfaex = new XMPSchemaPDFAExtensions(this, metadata, 1, attachZUGFeRDHeaders, EStandard.orderx);
+			XMPSchemaPDFAExtensions pdfaex = new XMPSchemaPDFAExtensions(this, metadata, 1, attachZUGFeRDHeaders, EStandard.despatchadvice);
 			pdfaex.setZUGFeRDVersion(1);
 			metadata.addSchema(pdfaex);
 		}
