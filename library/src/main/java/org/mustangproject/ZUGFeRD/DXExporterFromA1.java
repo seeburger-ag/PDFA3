@@ -44,9 +44,10 @@ public class DXExporterFromA1 extends DXExporterFromA3 implements IZUGFeRDExport
 	 * @return the URN of the namespace
 	 */
 	public String getNamespaceForVersion(int ver) {
-		// See specification: GS1 Standards, Der digitale Lieferschein (dLS)
+		// As of late 2022 the Delivery-X standard is not yet published. See specification:
 		// Die digitale Ablösung des Papier-Lieferscheins, Version 1.1, April 2022
 		// Chapter 7.1 XMP-Erweiterungsschema für PDF/A-3
+		// http://docplayer.org/230301085-Der-digitale-lieferschein-dls.html
 		return "urn:factur-x:pdfa:CrossIndustryDocument:despatchadvice:1p0#";
 	}
 	/***
