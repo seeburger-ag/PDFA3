@@ -33,6 +33,8 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import junit.framework.TestCase;
+
+import org.mustangproject.ZUGFeRD.model.EventTimeCodeTypeConstants;
 import org.xmlunit.builder.Input;
 import org.xmlunit.xpath.JAXPXPathEngine;
 import org.xmlunit.xpath.XPathEngine;
@@ -382,15 +384,16 @@ public class ZF2PushTest extends TestCase {
 				SchemedID gtin=new SchemedID("0160","2001015001325");
 				SchemedID gln=new SchemedID("0088","4304171000002");
 				ze.setTransaction(new Invoice().setCurrency("CHF").addNote("document level 1/2").addNote("document level 2/2").setDueDate(new Date()).setIssueDate(new Date()).setDeliveryDate(new Date())
+						.setSellerOrderReferencedDocumentID("9384").setBuyerOrderReferencedDocumentID("28934")
 						.setDetailedDeliveryPeriod(new SimpleDateFormat("yyyyMMdd").parse(occurrenceFrom), new SimpleDateFormat("yyyyMMdd").parse(occurrenceTo))
 						.setSender(new TradeParty(orgname, "teststr", "55232", "teststadt", "DE").addTaxID(taxID).setID("0009845"))
 						.setDeliveryAddress(new TradeParty("just the other side of the street", "teststr.12a", "55232", "Entenhausen", "DE").addVATID("DE47110"))
 						.setContractReferencedDocument(contractID)
 						.setRecipient(new TradeParty("Franz Müller", "teststr.12", "55232", "Entenhausen", "DE").addGlobalID(gln).addVATID("DE4711").setContact(new Contact("Franz Müller", "01779999999", "franz@mueller.de", "teststr. 12", "55232", "Entenhausen", "DE").setFax("++49555123456")).setAdditionalAddress("Hinterhaus 3"))
-						.addItem(new Item(new Product("Testprodukt", "", "C62", new BigDecimal(16)).addGlobalID(gtin), price, new BigDecimal(1.0)).addReferencedLineID("xxx").addNote("item level 1/1").addAllowance(new Allowance(new BigDecimal(0.02)).setReason("item discount").setTaxPercent(new BigDecimal(16))).setDetailedDeliveryPeriod(sdf.parse("2020-01-13"), sdf.parse("2020-01-15")))
+						.addItem(new Item(new Product("Testprodukt", "", "C62", new BigDecimal(16)).addGlobalID(gtin).setSellerAssignedID("4711"), price, new BigDecimal(1.0)).addReferencedLineID("xxx").addNote("item level 1/1").addAllowance(new Allowance(new BigDecimal(0.02)).setReason("item discount").setTaxPercent(new BigDecimal(16))).setDetailedDeliveryPeriod(sdf.parse("2020-01-13"), sdf.parse("2020-01-15")))
 						.addCharge(new Charge(new BigDecimal(0.5)).setReason("quick delivery charge").setTaxPercent(new BigDecimal(16)))
 						.addAllowance(new Allowance(new BigDecimal(0.2)).setReason("discount").setTaxPercent(new BigDecimal(16)))
-						.setDeliveryDate(sdf.parse("2020-11-02")).setOwnVATID("DE0815").setNumber(number)
+						.setDeliveryDate(sdf.parse("2020-11-02")).setOwnVATID("DE0815").setNumber(number).setVATDueDateTypeCode(EventTimeCodeTypeConstants.PAYMENT_DATE)
 				);
 			} catch (ParseException e) {
 				e.printStackTrace();
@@ -429,6 +432,8 @@ public class ZF2PushTest extends TestCase {
 		assertFalse(zi.getUTF8().contains("DE47110")); // but not the VAT ID of the shiptotradeparty
 		assertTrue(zi.getUTF8().contains("document level 2/2"));
 		assertFalse(zi.getUTF8().contains("++49555123456")); // in profile EN16931 contact fax number is not allowed
+		assertThat(zi.getUTF8()).valueByXPath("//*[local-name()='ApplicableTradeTax']/*[local-name()='DueDateTypeCode']").asString()
+				.isEqualTo(EventTimeCodeTypeConstants.PAYMENT_DATE);
 
 		ZUGFeRDInvoiceImporter zii = new ZUGFeRDInvoiceImporter(TARGET_PUSHEDGE);
 		try {

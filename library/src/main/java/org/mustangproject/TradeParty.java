@@ -5,10 +5,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.mustangproject.ZUGFeRD.*;
+import org.mustangproject.ZUGFeRD.IZUGFeRDExportableContact;
+import org.mustangproject.ZUGFeRD.IZUGFeRDExportableTradeParty;
+import org.mustangproject.ZUGFeRD.IZUGFeRDLegalOrganisation;
+import org.mustangproject.ZUGFeRD.IZUGFeRDTradeSettlement;
+import org.mustangproject.ZUGFeRD.IZUGFeRDTradeSettlementDebit;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /***
  * A organisation, i.e. usually a company
@@ -20,11 +25,13 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	protected String taxID = null, vatID = null;
 	protected String ID = null;
 	protected String additionalAddress = null;
+	protected String additionalAddressExtension = null;
 	protected List<BankDetails> bankDetails = new ArrayList<>();
 	protected List<IZUGFeRDTradeSettlementDebit> debitDetails = new ArrayList<>();
 	protected Contact contact = null;
 	protected LegalOrganisation legalOrg = null;
 	protected SchemedID globalId=null;
+	protected SchemedID uriUniversalCommunicationId=null;
 
 	/**
 	 * Default constructor.
@@ -115,6 +122,9 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 									if (postal.item(postalChildIndex).getLocalName().equals("LineTwo")) {
 										setAdditionalAddress(postal.item(postalChildIndex).getTextContent());
 									}
+									if (postal.item(postalChildIndex).getLocalName().equals("LineThree")) {
+										setAdditionalAddressExtension(postal.item(postalChildIndex).getTextContent());
+									}
 									if (postal.item(postalChildIndex).getLocalName().equals("CityName")) {
 										setLocation(postal.item(postalChildIndex).getTextContent());
 									}
@@ -136,11 +146,17 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 								if (taxChilds.item(taxChildIndex).getLocalName() != null) {
 									if ((taxChilds.item(taxChildIndex).getLocalName().equals("ID"))) {
 										if (taxChilds.item(taxChildIndex).getAttributes().getNamedItem("schemeID") != null) {
-											if (taxChilds.item(taxChildIndex).getAttributes().getNamedItem("schemeID").getNodeValue().equals("VA")) {
-												setVATID(taxChilds.item(taxChildIndex).getFirstChild().getNodeValue());
-											}
-											if (taxChilds.item(taxChildIndex).getAttributes().getNamedItem("schemeID").getNodeValue().equals("FC")) {
-												setTaxID(taxChilds.item(taxChildIndex).getFirstChild().getNodeValue());
+											Node firstChild = taxChilds.item(taxChildIndex).getFirstChild();
+											if (firstChild != null)
+											{
+												if (taxChilds.item(taxChildIndex).getAttributes()
+														.getNamedItem("schemeID").getNodeValue().equals("VA")) {
+													setVATID(firstChild.getNodeValue());
+												}
+												if (taxChilds.item(taxChildIndex).getAttributes()
+														.getNamedItem("schemeID").getNodeValue().equals("FC")) {
+													setTaxID(firstChild.getNodeValue());
+												}
 											}
 										}
 									}
@@ -177,6 +193,27 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 
 	}
 
+  
+	@Override
+	public String getUriUniversalCommunicationID() {
+		if (uriUniversalCommunicationId!=null) {
+			return uriUniversalCommunicationId.getID();
+		}
+		return null;
+	}
+
+
+
+	@Override
+	public String getUriUniversalCommunicationIDScheme() {
+		if (uriUniversalCommunicationId!=null) {
+			return uriUniversalCommunicationId.getScheme();
+		}
+		return null;
+
+	}
+
+  
 
 	/**
 	 * if it's a customer, this can e.g. be the customer ID
@@ -204,6 +241,11 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 		globalId=schemedID;
 		return this;
 	}
+  
+	public TradeParty addUriUniversalCommunicationID(SchemedID schemedID) {
+		uriUniversalCommunicationId=schemedID;
+		return this;
+	}
 
 	/***
 	 * required (for senders, if payment is not debit): the BIC and IBAN
@@ -218,7 +260,7 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	/**
 	 * (optional)
 	 *
-	 * @param debitDetail
+	 * @param debitDetail e.g. containing IBAN and mandate
 	 * @return fluent setter
 	 */
 	public TradeParty addDebitDetails(IZUGFeRDTradeSettlementDebit debitDetail) {
@@ -387,15 +429,53 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	}
 
 
+
 	/***
-	 * additional parts of the address, e.g. which floor.
-	 * Street address will become "lineOne", this will become "lineTwo"
+	 * additional info of the address, e.g. which building or which floor.
+	 * Street address will become "lineOne", this will become "lineTwo".
+	 * (see setAdditionalAddressExtension for "lineThree")
 	 * @param additionalAddress additional address description
 	 * @return fluent setter
 	 */
 	public TradeParty setAdditionalAddress(String additionalAddress) {
 		this.additionalAddress = additionalAddress;
 		return this;
+	}
+
+	/***
+	 * Sets two parts of additional address at once, e.g. which building and which floor
+	 * (if building is not in question which floor can also be set with the first part only :-))
+	 *
+	 * @param additionalAddress1 first part of additional info, e.g. "Rear building"
+	 * @param additionalAddress2 second part of additional address info, e.g. "2nd floor"
+	 * @return fluent setter
+	 */
+	public TradeParty setAdditionalAddress(String additionalAddress1, String additionalAddress2) {
+		this.additionalAddress = additionalAddress1;
+		this.additionalAddressExtension = additionalAddress2;
+		return this;
+	}
+
+	/***
+	 * Sets even advanced additional address information,
+	 * e.g. which floor (if LineTwo has already been used e.g. for which building)
+	 * This could sometimes be BT-165?
+	 *
+	 * @param additionalAddress2
+	 * @return fluent setter
+	 */
+	public TradeParty setAdditionalAddressExtension(String additionalAddress2) {
+		this.additionalAddressExtension = additionalAddress2;
+		return this;
+	}
+
+	/***
+	 * Returns even advanced additional address information,
+	 * e.g. which floor (if LineTwo=setAdditionalAddress has already been used e.g. for which building)
+	 * @return lineThree
+	 */
+	public String getAdditionalAddressExtension() {
+		return this.additionalAddressExtension;
 	}
 
 

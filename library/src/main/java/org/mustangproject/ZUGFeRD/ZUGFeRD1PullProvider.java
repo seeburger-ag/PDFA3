@@ -271,6 +271,7 @@ public class ZUGFeRD1PullProvider extends ZUGFeRD2PullProvider implements IXMLPr
 			final VATAmount amount = VATPercentAmountMap.get(currentTaxPercent);
 			if (amount != null) {
 				final String amountCategoryCode = amount.getCategoryCode();
+				final String amountDueDateTypeCode = amount.getDueDateTypeCode();
 				final boolean displayExemptionReason = CATEGORY_CODES_WITH_EXEMPTION_REASON.contains(amountCategoryCode);
 				xml += "<ram:ApplicableTradeTax>"
 						+ "<ram:CalculatedAmount currencyID=\"" + trans.getCurrency() + "\">" + currencyFormat(amount.getCalculated())
@@ -279,6 +280,7 @@ public class ZUGFeRD1PullProvider extends ZUGFeRD2PullProvider implements IXMLPr
 						+ (displayExemptionReason ? exemptionReason : "")
 						+ "<ram:BasisAmount currencyID=\"" + trans.getCurrency() + "\">" + currencyFormat(amount.getBasis()) + "</ram:BasisAmount>" // currencyID=\"EUR\"
 						+ "<ram:CategoryCode>" + amount.getCategoryCode() + "</ram:CategoryCode>"
+						+ (amountDueDateTypeCode != null ? "<ram:DueDateTypeCode>" + amountDueDateTypeCode + "</ram:DueDateTypeCode>" : "")
 						+ "<ram:ApplicablePercent>" + vatFormat(currentTaxPercent)
 						+ "</ram:ApplicablePercent></ram:ApplicableTradeTax>";
 			}
@@ -310,16 +312,19 @@ public class ZUGFeRD1PullProvider extends ZUGFeRD2PullProvider implements IXMLPr
 		xml += "<ram:SpecifiedTradeSettlementMonetarySummation>"
 				+ "<ram:LineTotalAmount currencyID=\"" + trans.getCurrency() + "\">" + currencyFormat(calc.getTotal()) + "</ram:LineTotalAmount>"
 				// currencyID=\"EUR\"
-				+ "<ram:ChargeTotalAmount currencyID=\"" + trans.getCurrency() + "\">0.00</ram:ChargeTotalAmount>" // currencyID=\"EUR\"
-				+ "<ram:AllowanceTotalAmount currencyID=\"" + trans.getCurrency() + "\">0.00</ram:AllowanceTotalAmount>" //
+				+ "<ram:ChargeTotalAmount currencyID=\"" + trans.getCurrency() + "\">"
+				+ currencyFormat(calc.getChargeTotal()) + "</ram:ChargeTotalAmount>" // currencyID=\"EUR\"
+				+ "<ram:AllowanceTotalAmount currencyID=\"" + trans.getCurrency() + "\">"
+				+ currencyFormat(calc.getAllowanceTotal()) + "</ram:AllowanceTotalAmount>" //
 				// currencyID=\"EUR\"
 				// + " <ChargeTotalAmount currencyID=\"EUR\">5.80</ChargeTotalAmount>"
 				// + " <AllowanceTotalAmount currencyID=\"EUR\">14.73</AllowanceTotalAmount>"
-				+ "<ram:TaxBasisTotalAmount currencyID=\"" + trans.getCurrency() + "\">" + currencyFormat(calc.getTotal()) + "</ram:TaxBasisTotalAmount>"
+				+ "<ram:TaxBasisTotalAmount currencyID=\"" + trans.getCurrency() + "\">"
+				+ currencyFormat(calc.getTaxBasis()) + "</ram:TaxBasisTotalAmount>"
 				// //
 				// currencyID=\"EUR\"
 				+ "<ram:TaxTotalAmount currencyID=\"" + trans.getCurrency() + "\">"
-				+ currencyFormat(calc.getGrandTotal().subtract(calc.getTotal())) + "</ram:TaxTotalAmount>"
+				+ currencyFormat(calc.getGrandTotal().subtract(calc.getTaxBasis())) + "</ram:TaxTotalAmount>"
 				+ "<ram:GrandTotalAmount currencyID=\"" + trans.getCurrency() + "\">" + currencyFormat(calc.getGrandTotal()) + "</ram:GrandTotalAmount>"
 				// //
 				// currencyID=\"EUR\"

@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.mustangproject</groupId>
         <artifactId>core</artifactId>
-        <version>2.5.6-SNAPSHOT</version>
+        <version>2.7.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.mustangproject</groupId>
@@ -11,7 +11,7 @@
     <name>Library to validate e-invoices (ZUGFeRD, Factur-X and Xrechnung)</name>
 
     <packaging>jar</packaging>
-    <version>2.5.6-SNAPSHOT</version>
+    <version>2.7.4-SNAPSHOT</version>
     <repositories>
         <repository>
             <!-- for jargs -->
@@ -29,9 +29,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.deploy.skip>false
         </maven.deploy.skip><!-- do deploy to maven central, parent project does not and inherits -->
+        <maven.compiler.compilerVersion>8</maven.compiler.compilerVersion>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
 
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>library</artifactId>
+            <version>2.7.4-SNAPSHOT</version>
+        </dependency>
         <!-- for java9 -->
         <dependency>
             <groupId>javax.xml.bind</groupId>
@@ -74,7 +82,7 @@
         <dependency>
             <groupId>org.verapdf</groupId>
             <artifactId>validation-model</artifactId>
-            <version>1.16.1</version>
+            <version>1.22.2</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.helger/ph-schematron -->
         <dependency>
@@ -83,9 +91,14 @@
             <version>6.3.3</version>
         </dependency>
         <dependency>
+            <groupId>com.helger</groupId>
+            <artifactId>ph-jaxb</artifactId>
+            <version>9.5.5</version>
+        </dependency>
+        <dependency>
             <groupId>org.mustangproject</groupId>
             <artifactId>library</artifactId>
-            <version>2.5.6-SNAPSHOT</version>
+            <version>2.7.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.xmlunit</groupId>
@@ -96,7 +109,7 @@
         <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-assertj</artifactId>
-            <version>2.9.0</version>
+            <version>2.9.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -105,11 +118,17 @@
             <version>0.3.0</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.9.1</version>
             <scope>test</scope>
-        </dependency>
+         </dependency>
+         <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.9.1</version>
+            <scope>test</scope>
+         </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -125,14 +144,22 @@
             </plugins>
         </pluginManagement>
         <plugins>
-
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <runOrder>alphabetical</runOrder>
+                </configuration>
+            </plugin>
             <!-- allow getImplementationVersion for the pom.xml -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
+					<excludes>
+						<exclude>**/logback.xml</exclude>
+					</excludes>
                     <archive>
                         <manifest>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
@@ -141,7 +168,6 @@
                     </archive>
                 </configuration>
             </plugin>
-            <!-- ZUV -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -153,8 +179,8 @@
                     <!-- http://stackoverflow.com/questions/574594/how-can-i-create-an-executable-jar-with-dependencies-using-maven
                              mvn clean compile assembly:single -->
                     <!-- or whatever version you use -->
-                    <source>11</source>
-                    <target>11</target>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
             <!-- /ZUV -->
@@ -222,10 +248,10 @@
                         </goals>
 
                         <configuration>
-                            <outputDirectory>${basedir}/src/main/resources/xslt/ZF_220/</outputDirectory>
+                            <outputDirectory>${basedir}/src/main/resources/xslt/ZF_221/</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${basedir}/src/main/resources/schematron/ZF_220/</directory>
+                                    <directory>${basedir}/src/main/resources/schematron/ZF_221/</directory>
                                     <includes>
                                         <include>**/*.xml</include>
                                     </includes>
@@ -256,7 +282,43 @@
         </developer>
     </developers>
     <profiles>
-        <profile>
+        <profile> <!-- enforce building binaries with Java 1.8 for Maven Central, otherwise using them e.g. as jar will
+        throw a version exception, triggered automatically on mvn release:release (hopefully) and requires an according
+        ~/.m2/toolchains.xml file, @see doc/development_documentation.md -->
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-toolchains-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>toolchain</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <toolchains>
+                                <jdk>
+                                    <version>8</version>
+                                    <vendor>adopt</vendor>
+                                </jdk>
+                            </toolchains>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile> <!-- build the intermediate XSLT files from schematron takes 30min+ and is only required if there actually is a change in the schematron,
+         -> invoke manually with commandline -P generateXSLTFromSchematron on demand -->
             <id>generateXSLTFromSchematron</id>
             <activation>
                 <activeByDefault>false</activeByDefault>

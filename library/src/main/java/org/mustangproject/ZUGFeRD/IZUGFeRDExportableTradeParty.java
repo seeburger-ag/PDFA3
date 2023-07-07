@@ -49,7 +49,8 @@ public interface IZUGFeRDExportableTradeParty {
 		return null;
 	}
 
-	/***
+
+  /***
 	 * gets the official representation
 	 * @return the interface with the attributes of the legal organisation
 	 */
@@ -62,6 +63,23 @@ public interface IZUGFeRDExportableTradeParty {
 	 * @return customer identification
 	 */
 	default String getGlobalIDScheme() {
+		return null;
+	}
+
+
+	/**
+	 * URIUniversalCommunication scheme (see EAS code list of the ZUGFeRD documentation)
+	 *
+	 */
+	default String getUriUniversalCommunicationIDScheme() {
+		return null;
+	}
+	/**
+	 * The URIID of URIUniversalCommunicationID
+   * It is used by some countries, i.e. Luxembourg
+	 *
+	 */
+	default String getUriUniversalCommunicationID() {
 		return null;
 	}
 
@@ -119,10 +137,22 @@ public interface IZUGFeRDExportableTradeParty {
 
 	/**
 	 * returns additional address information which is display in xml tag "LineTwo"
-	 * 
+	 * e.g. "Rear building"
+	 *
 	 * @return additional address information
 	 */
 	default String getAdditionalAddress() {
+		return null;
+	}
+
+	/**
+	 * returns additional address information which is display in xml tag "LineThree"
+	 * e.g. "Second floor" if LineTwo is already used, e.g. "Rear Building".
+	 * This attribute could sometimes be BT-165?
+	 *
+	 * @return additional address information
+	 */
+	default String getAdditionalAddressExtension() {
 		return null;
 	}
 
