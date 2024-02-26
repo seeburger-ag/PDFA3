@@ -1,3 +1,34 @@
+- EN16931 validation 1.3.11 codelists v11 #357
+- Fonts removed #358
+
+2.10.0
+=======
+2023-12-30
+
+- also accept pdf/a3 from inputstream
+- closes #354 factur-x 1 from commandline
+- support XR 3.0.1 (#343), 
+  - i.e. processid
+  - set email in tradeparty class
+  - empty description remove
+
+2.9.0
+=======
+2023-11-27
+
+- Missing closing tag in BankDetails when there's no BIC number #339
+- ZUGFeRDExporterFromA3 did not set default ZUGFeRD Version
+- Have a way to merge to PDF file without knowing if it is A-1 or A-3 #341
+- Be able to validate XR 3.0 #347
+
+2.8.0
+=======
+2023-09-14
+
+- Improvement of included notes #331
+- fixes #259 by Heavenfighter
+- introduction of --disable-file-logging command line option
+
 2.7.3
 =======
 2023-06-16

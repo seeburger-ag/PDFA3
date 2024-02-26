@@ -21,11 +21,12 @@ package org.mustangproject.commandline;
 import org.apache.commons.cli.*;
 import org.mustangproject.CII.CIIToUBL;
 import org.mustangproject.EStandard;
-import org.mustangproject.ZUGFeRD.*;
-import org.mustangproject.validator.Validator;
-import org.mustangproject.validator.ZUGFeRDValidator;
 import org.mustangproject.FileAttachment;
+import org.mustangproject.ZUGFeRD.*;
+import org.mustangproject.validator.ZUGFeRDValidator;
+import org.slf4j.LoggerFactory;
 
+import javax.xml.transform.TransformerException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -33,24 +34,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-/*
- * This is the command line interface to mustangproject
- *
- */
-
-import org.slf4j.LoggerFactory;
-
-import javax.xml.transform.TransformerException;
-
 public class Main {
-	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Validator.class.getCanonicalName()); // log output
-
+	private static org.slf4j.Logger LOGGER; // log output
 	private static void printUsage() {
 		System.err.println(getUsage());
 	}
 
 	private static String getUsage() {
-		return "Usage: --action metrics|combine|extract|a3only|ubl|validate|validateExpectInvalid|validateExpectValid|visualize [-d,--directory] [-l,--listfromstdin] [-i,--ignore fileextension, PDF/A errors] | [-h,--help] \r\n"
+		return "Usage: --action metrics|combine|extract|a3only|ubl|validate|validateExpectInvalid|validateExpectValid|visualize [-d,--directory] [-l,--listfromstdin] [-i,--ignore fileextension, PDF/A errors] [--disable-file-logging] | [-h,--help] \r\n"
 				+ "        --action license   display open source license and notice\n"
 				+ "        --action metrics\n"
 				+ "          -d, --directory count ZUGFeRD files in directory to be scanned\n"
@@ -59,6 +50,7 @@ public class Main {
 				+ "                It will start once a blank line has been entered.\n" + "\n"
 				+ "        Additional parameter for both count operations\n"
 				+ "        [-i, --ignorefileextension]     Check for all files (*.*) instead of PDF files only (*.pdf) in metrics, ignore PDF/A input file errors in combine\n"
+			    + "        [--disable-file-logging]		disable logging to file.\n"
 				+ "        --action extract   extract Factur-X PDF to XML file\n"
 				+ "                Additional parameters (optional - user will be prompted if not defined)\n"
 				+ "                [--source <filename>]: set input PDF file\n"
@@ -102,28 +94,27 @@ public class Main {
 				+ "                [--language <lang>]: set output lang (en, fr or de)\n"
 				+ "                [--source <filename>]: set input XML file\n"
 				+ "                [--out <filename>]: set output HTML file\n"
-				;
+			+ "        --action pdf  convert XML to PDF \n"
+			+ "                [--source <filename>]: set input XML file\n"
+			+ "                [--out <filename>]: set output PDF file\n"
+			;
 	}
 
 	private static void printHelp() {
 		System.out.println("Mustangproject.org " + org.mustangproject.ZUGFeRD.Version.VERSION + " \r\n"
-				+ "A Apache Public License tool for e-invoices with\r\n"
-				+ "ZUGFeRD Metadata (http://www.zugferd.org)\r\n" + "\r\n" + getUsage() + "\r\n");
+			+ "A Apache Public License tool for e-invoices with\r\n"
+			+ "ZUGFeRD Metadata (http://www.zugferd.org)\r\n" + "\r\n" + getUsage() + "\r\n");
 	}
 
 	/**
 	 * Asks the user (repeatedly, if neccessary) on the command line for a String
 	 * (offering a defaultValue) conforming to a Regex pattern
 	 *
-	 * @param prompt
-	 *            the question to be asked to the user
-	 * @param defaultValue
-	 *            the default return value if user hits enter
-	 * @param pattern
-	 *            a regex of acceptable values
+	 * @param prompt       the question to be asked to the user
+	 * @param defaultValue the default return value if user hits enter
+	 * @param pattern      a regex of acceptable values
 	 * @return the user answer conforming to pattern
-	 * @throws Exception
-	 *             if pattern not compielable or IOexception on input
+	 * @throws Exception if pattern not compielable or IOexception on input
 	 */
 	protected static String getStringFromUser(String prompt, String defaultValue, String pattern) throws Exception {
 		String input = "";
@@ -135,7 +126,7 @@ public class Main {
 			// for a more sophisticated dialogue maybe https://github.com/mabe02/lanterna/
 			// could be taken into account
 			System.out.print(prompt + " (default: " + defaultValue + ")");
-			if ((!firstInput)&&(pattern.length()>0)) {
+			if ((!firstInput) && (pattern.length() > 0)) {
 				System.out.print("\n(allowed pattern: " + pattern + ")");
 
 			}
@@ -162,15 +153,15 @@ public class Main {
 	/**
 	 * Prompts the user for a input or output filename
 	 *
-	 * @param prompt the text the user is asked
-	 * @param defaultFilename a default Filename. Passing an empty string indicates that specifying a file is optional
-	 * @param expectedExtension will warn if filename does not match expected file extension, "or" possible with e.g. pdf|xml
-	 * @param ensureFileExists will warn if file does NOT exist (for input files)
+	 * @param prompt              the text the user is asked
+	 * @param defaultFilename     a default Filename. Passing an empty string indicates that specifying a file is optional
+	 * @param expectedExtension   will warn if filename does not match expected file extension, "or" possible with e.g. pdf|xml
+	 * @param ensureFileExists    will warn if file does NOT exist (for input files)
 	 * @param ensureFileNotExists will warn if file DOES exist (for output files)
 	 * @return String
 	 */
 	protected static String getFilenameFromUser(String prompt, String defaultFilename, String expectedExtension,
-			boolean ensureFileExists, boolean ensureFileNotExists) {
+												boolean ensureFileExists, boolean ensureFileNotExists) {
 		boolean fileExistenceOK = false;
 		String selectedName = "";
 		do {
@@ -187,17 +178,17 @@ public class Main {
 
 			if (selectedName.isEmpty()) {
 				// pressed return without entering anything
-				if(defaultFilename.isEmpty()) {
+				if (defaultFilename.isEmpty()) {
 					return "";  //no default -> this is an optional filename
 				}
 				selectedName = defaultFilename;
 			}
 
-			boolean hasCorrectExtension=false;
-			String[] expectedExtensions=expectedExtension.split("\\|");
-			for (String currentExtension: expectedExtensions) {
+			boolean hasCorrectExtension = false;
+			String[] expectedExtensions = expectedExtension.split("\\|");
+			for (String currentExtension : expectedExtensions) {
 				if (selectedName.toLowerCase().endsWith(currentExtension.toLowerCase())) {
-					hasCorrectExtension=true;
+					hasCorrectExtension = true;
 					break;
 				}
 			}
@@ -212,7 +203,7 @@ public class Main {
 				}
 			} else if (!hasCorrectExtension) {
 				System.err.println("Expected " + expectedExtension
-						+ " extension, this may corrupt your file. Do you still want to continue?(Y|N)");
+					+ " extension, this may corrupt your file. Do you still want to continue?(Y|N)");
 				String selectedAnswer = "";
 				try {
 					selectedAnswer = buffer.readLine();
@@ -242,6 +233,7 @@ public class Main {
 
 		return selectedName;
 	}
+
 	private static void performUpgrade(String xmlName, String outName) throws IOException, TransformerException {
 
 		// Get params from user if not already defined
@@ -330,6 +322,7 @@ public class Main {
 		// return result.toString(StandardCharsets.UTF_8);
 
 	}
+
 	/***
 	 * the main function of the commandline tool...
 	 * @param args the commandline args, see also https://www.mustangproject.org/commandline/#verbose
@@ -341,12 +334,12 @@ public class Main {
 			// create Options object
 			Options options = new Options();
 
-			options.addOption(new Option("h", "help",false, "display usage"));
-			options.addOption(new Option("a", "action",true, "which action to perform"));
-			options.addOption(new Option("f", "format",true, "which format to output"));
-			options.addOption(new Option("", "version",true, "which version of the standard to use"));
-			options.addOption(new Option("", "profile",true, "which profile of the standard to use"));
-			Option attachmentOpt=new Option("", "attachments", true, "File attachments");
+			options.addOption(new Option("h", "help", false, "display usage"));
+			options.addOption(new Option("a", "action", true, "which action to perform"));
+			options.addOption(new Option("f", "format", true, "which format to output"));
+			options.addOption(new Option("", "version", true, "which version of the standard to use"));
+			options.addOption(new Option("", "profile", true, "which profile of the standard to use"));
+			Option attachmentOpt = new Option("", "attachments", true, "File attachments");
 			attachmentOpt.setValueSeparator(',');
 			attachmentOpt.setArgs(Option.UNLIMITED_VALUES);
 			options.addOption(attachmentOpt);
@@ -356,11 +349,13 @@ public class Main {
 			options.addOption(new Option("", "out",true, "which output file to write to"));
 			options.addOption(new Option("", "no-notices",false, "suppress non-fatal errors"));
 			options.addOption(new Option("", "logAppend",true, "freeform text to be appended to log messages"));
+			options.addOption(new Option("", "disable-file-logging", false, "suppress logging to file"));
 			options.addOption(new Option("d", "directory",true, "which directory to operate on"));
 			options.addOption(new Option("i", "ignorefileextension",false, "ignore non-matching file extensions"));
 			options.addOption(new Option("l", "listfromstdin",false, "take list of files from commandline"));
 			boolean optionsRecognized=false;
 			String action = "";
+            Boolean disableFileLogging = false;
 			try {
 				cmd = parser.parse(options, args);
 
@@ -370,6 +365,7 @@ public class Main {
 				Boolean filesFromStdIn = cmd.hasOption("listfromstdin");//((Number)cmdLine.getParsedOptionValue("integer-option")).intValue();
 				Boolean ignoreFileExt = cmd.hasOption("ignorefileextension");
 				Boolean helpRequested = cmd.hasOption("help")  || ((action!=null)&&(action.equals("help")));
+				disableFileLogging = cmd.hasOption("disable-file-logging");
 
 				String sourceName = cmd.getOptionValue("source");
 				String sourceXMLName = cmd.getOptionValue("source-xml");
@@ -387,46 +383,57 @@ public class Main {
 
 
 				ArrayList<FileAttachment> attachments=new ArrayList <>();
+				/*
+					setting system property to disable FILE appender and
+					suppress creation of files and folders.
+				 */
+				System.setProperty("FILE_APPENDER_ENABLED",  ((Boolean)(disableFileLogging==false)).toString());
+
+				LOGGER = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+
 				if (helpRequested) {
 					printHelp();
-					optionsRecognized=true;
+					optionsRecognized = true;
 				} /* else if ((action!=null)&&(action.equals("license"))) {
 				printLicense();
 				optionsRecognized=true;
-			} */ else if ((action!=null)&&(action.equals("metrics"))) {
+			} */ else if ((action != null) && (action.equals("metrics"))) {
 					performMetrics(directoryName, filesFromStdIn, ignoreFileExt);
-					optionsRecognized=true;
-				} else if ((action!=null)&&(action.equals("combine")))  {
+					optionsRecognized = true;
+				} else if ((action != null) && (action.equals("combine"))) {
 					performCombine(sourceName, sourceXMLName, outName, format, zugferdVersion, zugferdProfile, ignoreFileExt, attachmentFilenames, attachments);
-					optionsRecognized=true;
-				} else if ((action!=null)&&(action.equals("extract"))) {
+					optionsRecognized = true;
+				} else if ((action != null) && (action.equals("extract"))) {
 					performExtract(sourceName, outName);
-					optionsRecognized=true;
-				} else if ((action!=null)&&(action.equals("a3only")))  {
+					optionsRecognized = true;
+				} else if ((action != null) && (action.equals("a3only"))) {
 					performConvert(sourceName, outName);
-					optionsRecognized=true;
-				} else if ((action!=null)&&(action.equals("visualize")))  {
-					performVisualization(sourceName, lang, outName);
-					optionsRecognized=true;
-				} else if ((action!=null)&&(action.equals("upgrade")))  {
+					optionsRecognized = true;
+				} else if ((action != null) && (action.equals("pdf"))) {
+					performVisualization(sourceName, lang, outName, true);
+					optionsRecognized = true;
+				} else if ((action != null) && (action.equals("visualize"))) {
+					performVisualization(sourceName, lang, outName, false);
+					optionsRecognized = true;
+				} else if ((action != null) && (action.equals("upgrade"))) {
 					performUpgrade(sourceName, outName);
-					optionsRecognized=true;
-				} else if ((action!=null)&&(action.equals("ubl")))  {
+					optionsRecognized = true;
+				} else if ((action != null) && (action.equals("ubl"))) {
 					performUBL(sourceName, outName);
-					optionsRecognized=true;
-				} else if ((action!=null)&&(action.equals("validate"))) {
-					optionsRecognized=performValidate(sourceName, noNotices!=null&&noNotices, cmd.getOptionValue("logAppend"));
-				} else if ((action!=null)&&(action.equals("validateExpectValid"))) {
-					optionsRecognized=performValidateExpect(true, directoryName);
-				} else if ((action!=null)&&(action.equals("validateExpectInvalid"))) {
-					optionsRecognized=performValidateExpect(false, directoryName);
+					optionsRecognized = true;
+				} else if ((action != null) && (action.equals("validate"))) {
+					optionsRecognized = performValidate(sourceName, noNotices != null && noNotices, cmd.getOptionValue("logAppend"));
+				} else if ((action != null) && (action.equals("validateExpectValid"))) {
+					optionsRecognized = performValidateExpect(true, directoryName);
+				} else if ((action != null) && (action.equals("validateExpectInvalid"))) {
+					optionsRecognized = performValidateExpect(false, directoryName);
 				}
 
 			} catch (UnrecognizedOptionException ex) {
-				optionsRecognized=false;
+				optionsRecognized = false;
 			}
 
-			if (!optionsRecognized){
+			if (!optionsRecognized) {
 				// no argument or argument unknown
 				printUsage();
 				System.exit(2);
@@ -443,8 +450,8 @@ public class Main {
 		if (sourceName == null) {
 			sourceName = getFilenameFromUser("Source PDF or XML", "invoice.pdf", "pdf|xml", true, false);
 		}
-		ZUGFeRDValidator zfv=new ZUGFeRDValidator();
-		if ((logAppend!=null)&&(logAppend.length()>0)) {
+		ZUGFeRDValidator zfv = new ZUGFeRDValidator();
+		if ((logAppend != null) && (logAppend.length() > 0)) {
 			zfv.setLogAppend(logAppend);
 		}
 		if (noNotices) {
@@ -468,13 +475,13 @@ public class Main {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		String totalResult="valid";
+		String totalResult = "valid";
 		if (!zfWalk.getResult()) {
-			totalResult="invalid";
+			totalResult = "invalid";
 			System.exit(-1);
 		}
 
-		System.out.println("Overall test result: "+totalResult);
+		System.out.println("Overall test result: " + totalResult);
 
 		return true;
 	}
@@ -539,7 +546,7 @@ public class Main {
 	}
 
 	private static void performCombine(String pdfName, String xmlName, String outName, String format, String zfVersion,
-			String zfProfile, Boolean ignoreInputErrors, String[] attachmentFilenames, ArrayList <FileAttachment> attachments) throws Exception {
+									   String zfProfile, Boolean ignoreInputErrors, String[] attachmentFilenames, ArrayList<FileAttachment> attachments) throws Exception {
 		/*
 		 * ZUGFeRDExporter ze= new ZUGFeRDExporterFromA1Factory()
 		 * .setProducer("toecount") .setCreator(System.getProperty("user.name"))
@@ -560,7 +567,7 @@ public class Main {
 			} else {
 				System.out.println("ZUGFeRD XML set to " + xmlName);
 			}
-						
+
 			if (outName == null) {
 				outName = getFilenameFromUser("Output PDF", "invoice.ZUGFeRD.pdf", "pdf", false, true);
 			} else {
@@ -568,12 +575,12 @@ public class Main {
 			}
 
 			if (attachmentFilenames == null) {
-				byte attachmentContents[]=null;
+				byte attachmentContents[] = null;
 				String attachmentFilename, attachmentMime, attachmentDescription;
 				attachmentFilename = getFilenameFromUser("Additional file attachments filename (empty for none)", "", "pdf", true, false);
-				if (attachmentFilename.length()!=0) {
-					attachmentContents=Files.readAllBytes(Paths.get(attachmentFilename));
-					attachmentMime= Files.probeContentType(Paths.get(attachmentFilename));
+				if (attachmentFilename.length() != 0) {
+					attachmentContents = Files.readAllBytes(Paths.get(attachmentFilename));
+					attachmentMime = Files.probeContentType(Paths.get(attachmentFilename));
 					attachments.add(new FileAttachment(attachmentFilename, attachmentMime, "Data", attachmentContents));
 				}
 			} else {
@@ -611,14 +618,14 @@ public class Main {
 
 			if (zfProfile == null) {
 				try {
-					if ((format.equals("zf") && (zfIntVersion == 1)) || (format.equals("ox") )) {
+					if ((format.equals("zf") && (zfIntVersion == 1)) || (format.equals("ox"))) {
 						zfProfile = getStringFromUser("Profile (b)asic, (c)omfort or ex(t)ended", "t", "B|b|C|c|T|t");
-					} else if ( (format.equals("da"))) {
+					} else if ((format.equals("da"))) {
 						zfProfile = getStringFromUser("Profile (p)ilot", "p", "P|p");
 					} else {
 						zfProfile = getStringFromUser(
-								"Profile  [M]INIMUM, BASIC [W]L, [B]ASIC,\n" + "[C]IUS, [E]N16931, EX[T]ENDED or [X]RECHNUNG", "E",
-								"M|m|W|w|B|b|C|c|E|e|T|t|X|x|");
+							"Profile  [M]INIMUM, BASIC [W]L, [B]ASIC,\n" + "[C]IUS, [E]N16931, EX[T]ENDED or [X]RECHNUNG", "E",
+							"M|m|W|w|B|b|C|c|E|e|T|t|X|x|");
 					}
 				} catch (Exception e) {
 					LOGGER.error(e.getMessage(), e);
@@ -627,7 +634,6 @@ public class Main {
 				System.out.println("Profile set to " + zfProfile);
 			}
 			zfProfile = zfProfile.toLowerCase();
-
 
 
 			// Verify params
@@ -639,18 +645,17 @@ public class Main {
 				throw new Exception("Factur-X is only available in version 1 (roughly corresponding to ZF2)");
 			}
 
-			EStandard standard=EStandard.facturx;
+			EStandard standard = EStandard.facturx;
 			if (format.equals("zf")) {
-				standard=EStandard.zugferd;
+				standard = EStandard.zugferd;
 			}
 			if (format.equals("da")) {
-				standard=EStandard.despatchadvice;
+				standard = EStandard.despatchadvice;
 
 				zfConformanceLevelProfile = Profiles.getByName(standard, "PILOT", 1);
-			}
-			else if (((format.equals("zf")) && (zfIntVersion == 1))||(format.equals("ox"))) {
+			} else if (((format.equals("zf")) && (zfIntVersion == 1)) || (format.equals("ox"))) {
 				if (format.equals("ox")) {
-					standard=EStandard.orderx;
+					standard = EStandard.orderx;
 				}
 				if (zfProfile.equals("b")) {
 					zfConformanceLevelProfile = Profiles.getByName(standard, "BASIC", zfIntVersion);
@@ -683,38 +688,44 @@ public class Main {
 				throw new Exception(String.format("Unknown version '%i'", zfIntVersion));
 			}
 
-			IZUGFeRDExporter ze=null;
+			IZUGFeRDExporter ze = null;
 			// All params are good! continue...
 			if (format.equals("ox")) {
 				ze = new OXExporterFromA1().setProducer("Mustang-cli")
-						.setZUGFeRDVersion(zfIntVersion)
-						.setCreator(System.getProperty("user.name")).setProfile(zfConformanceLevelProfile);
+					.setZUGFeRDVersion(zfIntVersion)
+					.setCreator(System.getProperty("user.name")).setProfile(zfConformanceLevelProfile);
 				if (ignoreInputErrors) {
-					((OXExporterFromA1)ze).ignorePDFAErrors();
+					((OXExporterFromA1) ze).ignorePDFAErrors();
 				}
 
 			} else if (format.equals("da")) {
 				ze = new DXExporterFromA1().setProducer("Mustang-cli")
-						.setZUGFeRDVersion(zfIntVersion)
-						.setCreator(System.getProperty("user.name")).setProfile(zfConformanceLevelProfile);
+					.setZUGFeRDVersion(zfIntVersion)
+					.setCreator(System.getProperty("user.name")).setProfile(zfConformanceLevelProfile);
 
 				if (ignoreInputErrors) {
-					((DXExporterFromA1)ze).ignorePDFAErrors();
+					((DXExporterFromA1) ze).ignorePDFAErrors();
 				}
 
 			} else {
-				ze = new ZUGFeRDExporterFromA1().setProducer("Mustang-cli")
-						.setZUGFeRDVersion(standard, zfIntVersion)
-						.setCreator(System.getProperty("user.name")).setProfile(zfConformanceLevelProfile);
+				if (format.equals("fx")) {
+					zfIntVersion=2;// actually we are talking of generation, not version
+					// so even if someone correctly requested factur-x 1 internally we call it zugferd 2 :-(
+				}
+				ze = new ZUGFeRDExporterFromPDFA().load(pdfName);
+
+					ze.setProducer("Mustang-cli")
+					.setZUGFeRDVersion(zfIntVersion)
+					.setCreator(System.getProperty("user.name")).setProfile(zfConformanceLevelProfile);
 				if (ignoreInputErrors) {
-					((ZUGFeRDExporterFromA1)ze).ignorePDFAErrors();
+					((ZUGFeRDExporterFromA1) ze).ignorePDFAErrors();
 				}
 			}
-			for (FileAttachment attachment: attachments) {
+			for (FileAttachment attachment : attachments) {
 				((ZUGFeRDExporterFromA3) ze).attachFile(attachment.getFilename(), attachment.getData(), attachment.getMimetype(), attachment.getRelation());
 			}
 
-			ze = ze.load(pdfName);
+//			ze = ze.load(pdfName);
 
 			if (format.equals("zf")) {
 				ze.disableFacturX();
@@ -732,7 +743,7 @@ public class Main {
 	}
 
 	private static void performMetrics(String directoryName, Boolean filesFromStdIn, Boolean ignoreFileExt)
-			throws IOException {
+		throws IOException {
 
 		StatRun sr = new StatRun();
 		if (ignoreFileExt) {
@@ -769,27 +780,35 @@ public class Main {
 		System.out.println(sr.getSummaryLine());
 	}
 
-	private static void performVisualization(String sourceName, String lang, String outName) {
+	private static void performVisualization(String sourceName, String lang, String outName, boolean intoPDF) {
 		// Get params from user if not already defined
 		if (sourceName == null) {
 			sourceName = getFilenameFromUser("ZUGFeRD XML source", "factur-x.xml", "xml", true, false);
 		} else {
 			System.out.println("ZUGFeRD XML source set to " + sourceName);
 		}
-		if (lang == null) {
-			try {
-				lang = getStringFromUser("Output language", "en", "en|de|fr");
-			} catch(Exception e) {
-				LOGGER.error(e.getMessage(), e);
+		if (!intoPDF) {
+			if (lang == null) {
+				try {
+					lang = getStringFromUser("Output language", "en", "en|de|fr");
+				} catch (Exception e) {
+					LOGGER.error(e.getMessage(), e);
+				}
+			} else {
+				System.out.println("Output language set to " + lang);
 			}
-		} else {
-			System.out.println("Output language set to " + lang);
 		}
 
 		if (outName == null) {
-			outName = getFilenameFromUser("HTML target file", "factur-x.html", "html", false, true);
+			String defaultFilename = "factur-x.html";
+			String defaultExtension = "html";
+			if (intoPDF) {
+				defaultFilename = "factur-x.pdf";
+				defaultExtension = "pdf";
+			}
+			outName = getFilenameFromUser("Target file", defaultFilename, defaultExtension, false, true);
 		} else {
-			System.out.println("HTML target set to " + outName);
+			System.out.println("Target set to " + outName);
 		}
 
 		// Verify params
@@ -805,15 +824,19 @@ public class Main {
 		ZUGFeRDVisualizer zvi = new ZUGFeRDVisualizer();
 		String xml = null;
 		try {
-			ZUGFeRDVisualizer.Language langCode=ZUGFeRDVisualizer.Language.EN;
-			if (lang.equalsIgnoreCase("de")) {
-				langCode=ZUGFeRDVisualizer.Language.DE;
+			if (!intoPDF) {
+				ZUGFeRDVisualizer.Language langCode = ZUGFeRDVisualizer.Language.EN;
+				if (lang.equalsIgnoreCase("de")) {
+					langCode = ZUGFeRDVisualizer.Language.DE;
+				}
+				if (lang.equalsIgnoreCase("fr")) {
+					langCode = ZUGFeRDVisualizer.Language.FR;
+				}
+				xml = zvi.visualize(sourceName, langCode);
+				Files.write(Paths.get(outName), xml.getBytes());
+			} else {
+				zvi.toPDF(sourceName, outName);
 			}
-			if (lang.equalsIgnoreCase("fr")) {
-				langCode=ZUGFeRDVisualizer.Language.FR;
-			}
-			xml = zvi.visualize(sourceName, langCode);
-			Files.write(Paths.get(outName), xml.getBytes());
 		} catch (FileNotFoundException e) {
 			LOGGER.error(e.getMessage(), e);
 		} catch (UnsupportedEncodingException e) {
@@ -825,13 +848,16 @@ public class Main {
 		}
 		System.out.println("Written to " + outName);
 
-		try {
-			ExportResource("/xrechnung-viewer.css");
-			ExportResource("/xrechnung-viewer.js");
+		if (!intoPDF) {
 
-			System.out.println("xrechnung-viewer.css and xrechnung-viewer.js written as well (to local working dir)");
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
+			try {
+				ExportResource("/xrechnung-viewer.css");
+				ExportResource("/xrechnung-viewer.js");
+
+				System.out.println("xrechnung-viewer.css and xrechnung-viewer.js written as well (to local working dir)");
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+			}
 		}
 
 
@@ -850,7 +876,7 @@ public class Main {
 		String jarFolder;
 		try {
 			stream = Main.class.getResourceAsStream(resourceName);//note that each / is a directory down in the "jar tree" been the jar the root of the tree
-			if(stream == null) {
+			if (stream == null) {
 				throw new Exception("Cannot get resource \"" + resourceName + "\" from Jar file.");
 			}
 

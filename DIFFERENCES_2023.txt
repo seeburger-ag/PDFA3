@@ -1,0 +1,113 @@
+TODO: README.md Seeburger changes
+
+
+================================================================
+
+POM
+
+No <maven.deploy.skip>true</maven.deploy.skip> in See
+<shadedArtifactAttached>false</shadedArtifactAttached>
+
+<!-- No bundled classes for the Seeburger version -->
+						<phase>none</phase>
+						<goals>
+							<goal>shade</goal>
+
+	<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12.4</version>
+				<executions>
+					<execution>
+						<id>default-test</id>
+						<phase>none</phase>
+
+
+===============================================================
+
+Tests missing in See org.mustangproject.ZUGFeRD
+UBLTest
+VisualizationTest
+
+===============================================================
+
+in See org.mustangproject.CII package missing
+
+===============================================================
+
+Profiles line 32
+
+			{"CIUS", new Profile("CIUS", "urn:factur-x.eu:1p0:cius")}, // TODO: find out what namespace ID CIUS has
+
+===============================================================
+
+in See classes XMLUpgrader and ZUGFeRDVisualizer missing
+
+===============================================================
+
+ZUGFeRDExporterFromA3
+
+L125
+	// Special flag for possibly setting a legacy meta-data version 1.0 in case
+	// Of ZUGFeRD 2.0 - early versions of Mustang used to do it.
+	protected boolean isLegacy20Version = false;
+
+L175
+	public String getNamespaceForVersion(int ver) {
+		// In the case of XRechnung, it is the same as Factur-X
+		if ((ver >= 2) && (this.profile != null) &&
+			this.profile.getName().equalsIgnoreCase(Profiles.getByName("XRECHNUNG").getName()))
+        {
+        	return "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#";
+        } else
+
+L198
+	public String getPrefixForVersion(int ver) {
+		// In the case of XRechnung, it is the same as Factur-X
+		if ((ver >= 2) && (this.profile != null) &&
+			this.profile.getName().equalsIgnoreCase(Profiles.getByName("XRECHNUNG").getName()))
+        {
+			return "fx";
+        } else
+
+L218
+		public String getFilenameForVersion(int ver, Profile profile) {
+		boolean isXRechnung =
+			(ver >= 2) && (this.profile != null) &&
+			this.profile.getName().equalsIgnoreCase(Profiles.getByName("XRECHNUNG").getName());
+
+		if (isFacturX && (!isXRechnung)) {
+			return "factur-x.xml";
+		} else {
+			if (ver == 1) {
+				return "ZUGFeRD-invoice.xml";
+			} else {
+				if (isXRechnung) {
+					return "xrechnung.xml";
+				} else {
+					return "zugferd-invoice.xml";
+				}
+			}
+		}
+
+L265
+    /**
+     * 	Sets the special flag for possibly setting a legacy meta-data version 1.0 in case
+     *  of ZUGFeRD 2.0 - early versions of Mustang used to do it.
+     */
+    public void setLegacy20Version()
+    {
+    	this.isLegacy20Version = true;
+    }
+
+L538
+	protected void addXMP(XMPMetadata metadata) {
+
+    	String metaDataVersion = null; // default will be used
+
+    	// Legacy 2.0 behavior
+    	if (this.isLegacy20Version)
+    	{
+    		metaDataVersion = "1.0";
+    	} else
+
+===============================================================
+

@@ -30,8 +30,8 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	protected List<IZUGFeRDTradeSettlementDebit> debitDetails = new ArrayList<>();
 	protected Contact contact = null;
 	protected LegalOrganisation legalOrg = null;
-	protected SchemedID globalId=null;
-	protected SchemedID uriUniversalCommunicationId=null;
+	protected SchemedID globalId = null;
+	protected SchemedID uriUniversalCommunicationId = null; //e.g. the email address of the organization
 
 	/**
 	 * Default constructor.
@@ -59,35 +59,7 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 
 	}
 
-	/***
-	 * XML parsing constructor
-	 * @param nodes the nodelist returned e.g. from xpath
-	 */
-	public TradeParty(NodeList nodes) {
-/**
- * <ram:SellerTradeParty>
- *  <ram:ID>LIEF-987654321</ram:ID>
- *  <ram:Name>Max Mustermann IT GmbH</ram:Name>
- *  <ram:DefinedTradeContact>
- *  <ram:PersonName>Herr Treudiener</ram:PersonName>
- *  <ram:TelephoneUniversalCommunication>
- *  <ram:CompleteNumber>+49 1234-98765-12</ram:CompleteNumber>
- *  </ram:TelephoneUniversalCommunication>
- *  <ram:EmailURIUniversalCommunication>
- *  <ram:URIID>treudiener@max-mustermann-it.de</ram:URIID>
- *  </ram:EmailURIUniversalCommunication>
- *  </ram:DefinedTradeContact>
- *  <ram:PostalTradeAddress>
- *  <ram:PostcodeCode>12345</ram:PostcodeCode>
- *  <ram:LineOne>Musterstraße 1</ram:LineOne>
- *  <ram:CityName>Musterstadt</ram:CityName>
- *  <ram:CountryID>DE</ram:CountryID>
- *  </ram:PostalTradeAddress>
- *  <ram:SpecifiedTaxRegistration>
- *  <ram:ID schemeID="VA">DE123456789</ram:ID>
- *  </ram:SpecifiedTaxRegistration>
- *  </ram:SellerTradeParty>
- */
+	protected void parseFromUBL(NodeList nodes) {
 		if (nodes.getLength() > 0) {
 
 			for (int nodeIndex = 0; nodeIndex < nodes.getLength(); nodeIndex++) {
@@ -97,12 +69,91 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 				for (int itemChildIndex = 0; itemChildIndex < itemChilds.getLength(); itemChildIndex++) {
 					if (itemChilds.item(itemChildIndex).getLocalName() != null) {
 
-						if (itemChilds.item(itemChildIndex).getLocalName().equals("Name")) {
-							setName(itemChilds.item(itemChildIndex).getTextContent());
+						if (itemChilds.item(itemChildIndex).getLocalName().equals("Party")) {
+
+							NodeList party = itemChilds.item(itemChildIndex).getChildNodes();
+							for (int partyIndex = 0; partyIndex < party.getLength(); partyIndex++) {
+								if (party.item(partyIndex).getLocalName() != null) {
+
+									if (party.item(partyIndex).getLocalName().equals("PartyName")) {
+
+										NodeList partyName = party.item(partyIndex).getChildNodes();
+										for (int partyNameIndex = 0; partyNameIndex < partyName.getLength(); partyNameIndex++) {
+											if (partyName.item(partyNameIndex).getLocalName() != null) {
+
+												if (partyName.item(partyNameIndex).getLocalName().equals("Name")) {
+													setName(partyName.item(partyNameIndex).getTextContent());
+												}
+
+											}
+										}
+									}
+									if (party.item(partyIndex).getLocalName().equals("PostalAddress")) {
+
+										NodeList postal = party.item(partyIndex).getChildNodes();
+										for (int postalChildIndex = 0; postalChildIndex < postal.getLength(); postalChildIndex++) {
+											if (postal.item(postalChildIndex).getLocalName() != null) {
+
+												if (postal.item(postalChildIndex).getLocalName().equals("StreetName")) {
+													setStreet(postal.item(postalChildIndex).getTextContent());
+												}
+												if (postal.item(postalChildIndex).getLocalName().equals("AdditionalStreetName")) {
+													setAdditionalAddress(postal.item(postalChildIndex).getTextContent());
+												}
+												//unknow correspondence if (postal.item(postalChildIndex).getLocalName().equals("LineThree")) {
+
+
+												if (postal.item(postalChildIndex).getLocalName().equals("CityName")) {
+													setLocation(postal.item(postalChildIndex).getTextContent());
+												}
+												if (postal.item(postalChildIndex).getLocalName().equals("PostalZone")) {
+													setZIP(postal.item(postalChildIndex).getTextContent());
+												}
+												if (postal.item(postalChildIndex).getLocalName().equals("Country")) {
+													NodeList country = postal.item(postalChildIndex).getChildNodes();
+													for (int countryIndex = 0; countryIndex < country.getLength(); countryIndex++) {
+														if (country.item(countryIndex).getLocalName() != null) {
+
+															if (country.item(countryIndex).getLocalName().equals("IdentificationCode")) {
+																setCountry(country.item(countryIndex).getTextContent());
+															}
+
+														}
+													}
+
+
+												}
+
+												if (postal.item(postalChildIndex).getLocalName().equals("AddressLine")) {
+													NodeList AddressLine = postal.item(postalChildIndex).getChildNodes();
+													for (int lineIndex = 0; lineIndex < AddressLine.getLength(); lineIndex++) {
+														if (AddressLine.item(lineIndex).getLocalName() != null) {
+
+															if (AddressLine.item(lineIndex).getLocalName().equals("Line")) {
+																setAdditionalAddressExtension(AddressLine.item(lineIndex).getTextContent());
+															}
+
+														}
+													}
+
+
+												}
+												if (postal.item(postalChildIndex).getLocalName().equals("Name")) {
+													setName(postal.item(postalChildIndex).getTextContent());
+												}
+
+											}
+										}
+									}
+								}
+							}
+
+
 						}
+
 						if (itemChilds.item(itemChildIndex).getLocalName().equals("GlobalID")) {
 							if (itemChilds.item(itemChildIndex).getAttributes().getNamedItem("schemeID") != null) {
-								SchemedID gid=new SchemedID().setScheme(itemChilds.item(itemChildIndex).getAttributes().getNamedItem("schemeID").getNodeValue()).setId(itemChilds.item(itemChildIndex).getTextContent());
+								SchemedID gid = new SchemedID().setScheme(itemChilds.item(itemChildIndex).getAttributes().getNamedItem("schemeID").getNodeValue()).setId(itemChilds.item(itemChildIndex).getTextContent());
 								addGlobalID(gid);
 							}
 
@@ -147,14 +198,169 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 									if ((taxChilds.item(taxChildIndex).getLocalName().equals("ID"))) {
 										if (taxChilds.item(taxChildIndex).getAttributes().getNamedItem("schemeID") != null) {
 											Node firstChild = taxChilds.item(taxChildIndex).getFirstChild();
-											if (firstChild != null)
-											{
+											if (firstChild != null) {
 												if (taxChilds.item(taxChildIndex).getAttributes()
-														.getNamedItem("schemeID").getNodeValue().equals("VA")) {
+													.getNamedItem("schemeID").getNodeValue().equals("VA")) {
 													setVATID(firstChild.getNodeValue());
 												}
 												if (taxChilds.item(taxChildIndex).getAttributes()
-														.getNamedItem("schemeID").getNodeValue().equals("FC")) {
+													.getNamedItem("schemeID").getNodeValue().equals("FC")) {
+													setTaxID(firstChild.getNodeValue());
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	/***
+	 * XML parsing constructor
+	 * @param nodes the nodelist returned e.g. from xpath
+	 */
+	public TradeParty(NodeList nodes) {
+/**
+ * CII would be sth like
+ * <ram:SellerTradeParty>
+ *  <ram:ID>LIEF-987654321</ram:ID>
+ *  <ram:Name>Max Mustermann IT GmbH</ram:Name>
+ *  <ram:DefinedTradeContact>
+ *  <ram:PersonName>Herr Treudiener</ram:PersonName>
+ *  <ram:TelephoneUniversalCommunication>
+ *  <ram:CompleteNumber>+49 1234-98765-12</ram:CompleteNumber>
+ *  </ram:TelephoneUniversalCommunication>
+ *  <ram:EmailURIUniversalCommunication>
+ *  <ram:URIID>treudiener@max-mustermann-it.de</ram:URIID>
+ *  </ram:EmailURIUniversalCommunication>
+ *  </ram:DefinedTradeContact>
+ *  <ram:PostalTradeAddress>
+ *  <ram:PostcodeCode>12345</ram:PostcodeCode>
+ *  <ram:LineOne>Musterstraße 1</ram:LineOne>
+ *  <ram:CityName>Musterstadt</ram:CityName>
+ *  <ram:CountryID>DE</ram:CountryID>
+ *  </ram:PostalTradeAddress>
+ *  <ram:SpecifiedTaxRegistration>
+ *  <ram:ID schemeID="VA">DE123456789</ram:ID>
+ *  </ram:SpecifiedTaxRegistration>
+ *  </ram:SellerTradeParty>
+ *  while UBL may be
+ *  <cac:AccountingCustomerParty>
+ *     <cac:Party>
+ *       <cac:PartyName>
+ *         <cbc:Name>Theodor Est</cbc:Name>
+ *       </cac:PartyName>
+ *       <cac:PostalAddress>
+ *         <cbc:StreetName>Bahnstr. 42</cbc:StreetName>
+ *         <cbc:AdditionalStreetName>Hinterhaus</cbc:AdditionalStreetName>
+ *         <cbc:CityName>Spielkreis</cbc:CityName>
+ *         <cbc:PostalZone>88802</cbc:PostalZone>
+ *         <cac:AddressLine>
+ *           <cbc:Line>Zweiter Stock</cbc:Line>
+ *         </cac:AddressLine>
+ *         <cac:Country>
+ *           <cbc:IdentificationCode>DE</cbc:IdentificationCode>
+ *         </cac:Country>
+ *       </cac:PostalAddress>
+ *       <cac:PartyTaxScheme>
+ *         <cbc:CompanyID>DE999999999</cbc:CompanyID>
+ *         <cac:TaxScheme>
+ *           <cbc:ID>VAT</cbc:ID>
+ *         </cac:TaxScheme>
+ *       </cac:PartyTaxScheme>
+ *       <cac:PartyLegalEntity>
+ *         <cbc:RegistrationName>Theodor Est</cbc:RegistrationName>
+ *       </cac:PartyLegalEntity>
+ *     </cac:Party>
+ *   </cac:AccountingCustomerParty>
+ *
+ *  */
+		if (nodes.getLength() > 0) {
+
+			for (int nodeIndex = 0; nodeIndex < nodes.getLength(); nodeIndex++) {
+				//nodes.item(i).getTextContent())) {
+				Node currentItemNode = nodes.item(nodeIndex);
+				NodeList itemChilds = currentItemNode.getChildNodes();
+				for (int itemChildIndex = 0; itemChildIndex < itemChilds.getLength(); itemChildIndex++) {
+					if (itemChilds.item(itemChildIndex).getLocalName() != null) {
+
+						if (itemChilds.item(itemChildIndex).getLocalName().equals("Party")) {
+							parseFromUBL(nodes);
+							return;
+						}
+						if (itemChilds.item(itemChildIndex).getLocalName().equals("Name")) {
+							setName(itemChilds.item(itemChildIndex).getTextContent());
+						}
+						if (itemChilds.item(itemChildIndex).getLocalName().equals("GlobalID")) {
+							if (itemChilds.item(itemChildIndex).getAttributes().getNamedItem("schemeID") != null) {
+								SchemedID gid = new SchemedID().setScheme(itemChilds.item(itemChildIndex).getAttributes().getNamedItem("schemeID").getNodeValue()).setId(itemChilds.item(itemChildIndex).getTextContent());
+								addGlobalID(gid);
+							}
+						}
+						if (itemChilds.item(itemChildIndex).getLocalName().equals("DefinedTradeContact")) {
+							NodeList contact = itemChilds.item(itemChildIndex).getChildNodes();
+							setContact(new Contact(contact));
+						}
+						if (itemChilds.item(itemChildIndex).getLocalName().equals("PostalTradeAddress")) {
+							NodeList postal = itemChilds.item(itemChildIndex).getChildNodes();
+							for (int postalChildIndex = 0; postalChildIndex < postal.getLength(); postalChildIndex++) {
+								if (postal.item(postalChildIndex).getLocalName() != null) {
+									if (postal.item(postalChildIndex).getLocalName().equals("LineOne")) {
+										setStreet(postal.item(postalChildIndex).getTextContent());
+									}
+									if (postal.item(postalChildIndex).getLocalName().equals("LineTwo")) {
+										setAdditionalAddress(postal.item(postalChildIndex).getTextContent());
+									}
+									if (postal.item(postalChildIndex).getLocalName().equals("LineThree")) {
+										setAdditionalAddressExtension(postal.item(postalChildIndex).getTextContent());
+									}
+									if (postal.item(postalChildIndex).getLocalName().equals("CityName")) {
+										setLocation(postal.item(postalChildIndex).getTextContent());
+									}
+									if (postal.item(postalChildIndex).getLocalName().equals("PostcodeCode")) {
+										setZIP(postal.item(postalChildIndex).getTextContent());
+									}
+									if (postal.item(postalChildIndex).getLocalName().equals("CountryID")) {
+										setCountry(postal.item(postalChildIndex).getTextContent());
+									}
+
+								}
+							}
+
+						}
+						if (itemChilds.item(itemChildIndex).getLocalName().equals("URIUniversalCommunication")) {
+							NodeList URIchilds = itemChilds.item(itemChildIndex).getChildNodes();
+							for (int URIChildIndex = 0; URIChildIndex < URIchilds.getLength(); URIChildIndex++) {
+								Node currentNode = URIchilds.item(URIChildIndex);
+								if ((currentNode.getLocalName() != null) && (currentNode.getLocalName().equals("URIID")
+									&&
+									(currentNode.getAttributes().getNamedItem("schemeID") != null))
+									&& (URIchilds.item(URIChildIndex).getAttributes().getNamedItem("schemeID").getNodeValue().equals("EM"))
+								) {
+									setEmail(currentNode.getTextContent());
+								}
+							}
+						}
+
+						if (itemChilds.item(itemChildIndex).getLocalName().equals("SpecifiedTaxRegistration")) {
+							NodeList taxChilds = itemChilds.item(itemChildIndex).getChildNodes();
+							for (int taxChildIndex = 0; taxChildIndex < taxChilds.getLength(); taxChildIndex++) {
+								if (taxChilds.item(taxChildIndex).getLocalName() != null) {
+									if ((taxChilds.item(taxChildIndex).getLocalName().equals("ID"))) {
+										if (taxChilds.item(taxChildIndex).getAttributes().getNamedItem("schemeID") != null) {
+											Node firstChild = taxChilds.item(taxChildIndex).getFirstChild();
+											if (firstChild != null) {
+												if (taxChilds.item(taxChildIndex).getAttributes()
+													.getNamedItem("schemeID").getNodeValue().equals("VA")) {
+													setVATID(firstChild.getNodeValue());
+												}
+												if (taxChilds.item(taxChildIndex).getAttributes()
+													.getNamedItem("schemeID").getNodeValue().equals("FC")) {
 													setTaxID(firstChild.getNodeValue());
 												}
 											}
@@ -176,44 +382,53 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 
 	@Override
 	public String getGlobalID() {
-		if (globalId!=null) {
+		if (globalId != null) {
 			return globalId.getID();
 		}
 		return null;
 	}
 
 
-
 	@Override
 	public String getGlobalIDScheme() {
-		if (globalId!=null) {
+		if (globalId != null) {
 			return globalId.getScheme();
 		}
 		return null;
 
 	}
 
-  
+
 	@Override
 	public String getUriUniversalCommunicationID() {
-		if (uriUniversalCommunicationId!=null) {
+		if (uriUniversalCommunicationId != null) {
 			return uriUniversalCommunicationId.getID();
 		}
 		return null;
 	}
 
 
-
 	@Override
 	public String getUriUniversalCommunicationIDScheme() {
-		if (uriUniversalCommunicationId!=null) {
+		if (uriUniversalCommunicationId != null) {
 			return uriUniversalCommunicationId.getScheme();
 		}
 		return null;
 
 	}
 
-  
+
+	/***
+	 * sets the email of the organization (not the one of the contact person)
+	 * (while setEmail has to be defined here getEmail comes from IZUGFeRDExportableTradeParty)
+	 * @return fluent setter
+	 */
+	public TradeParty setEmail(String eMail) {
+		SchemedID theSchemedID = new SchemedID("EM", eMail);
+		addUriUniversalCommunicationID(theSchemedID);
+		return this;
+	}
+
 
 	/**
 	 * if it's a customer, this can e.g. be the customer ID
@@ -238,12 +453,12 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	}
 
 	public TradeParty addGlobalID(SchemedID schemedID) {
-		globalId=schemedID;
+		globalId = schemedID;
 		return this;
 	}
-  
+
 	public TradeParty addUriUniversalCommunicationID(SchemedID schemedID) {
-		uriUniversalCommunicationId=schemedID;
+		uriUniversalCommunicationId = schemedID;
 		return this;
 	}
 
@@ -274,7 +489,7 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	}
 
 	public TradeParty setLegalOrganisation(LegalOrganisation legalOrganisation) {
-		legalOrg=legalOrganisation;
+		legalOrg = legalOrganisation;
 		return this;
 	}
 
@@ -412,8 +627,8 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 			return null;
 		}
 		List<IZUGFeRDTradeSettlement> tradeSettlements = Stream.concat(bankDetails.stream(), debitDetails.stream())
-				.map(IZUGFeRDTradeSettlement.class::cast)
-				.collect(Collectors.toList());
+			.map(IZUGFeRDTradeSettlement.class::cast)
+			.collect(Collectors.toList());
 
 		IZUGFeRDTradeSettlement[] result = new IZUGFeRDTradeSettlement[tradeSettlements.size()];
 		for (int i = 0; i < tradeSettlements.size(); i++) {
@@ -427,7 +642,6 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	public String getAdditionalAddress() {
 		return additionalAddress;
 	}
-
 
 
 	/***
@@ -461,7 +675,7 @@ public class TradeParty implements IZUGFeRDExportableTradeParty {
 	 * e.g. which floor (if LineTwo has already been used e.g. for which building)
 	 * This could sometimes be BT-165?
 	 *
-	 * @param additionalAddress2
+	 * @param additionalAddress2 e.g. which floor, as String
 	 * @return fluent setter
 	 */
 	public TradeParty setAdditionalAddressExtension(String additionalAddress2) {
