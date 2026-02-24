@@ -1,10 +1,15 @@
 package org.mustangproject;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.mustangproject.ZUGFeRD.IZUGFeRDTradeSettlementPayment;
 
 /**
  * provides e.g. the IBAN to transfer money to :-)
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class BankDetails implements IZUGFeRDTradeSettlementPayment {
 	/**
 	 * the bank account number
@@ -13,11 +18,25 @@ public class BankDetails implements IZUGFeRDTradeSettlementPayment {
 	/**
 	 * BIC, I believe it's optional
 	 */
-	protected String BIC=null;
+	protected String BIC = null;
 	/**
 	 * the "name" of the bank account (holder)
 	 */
-	protected String accountName=null;
+	protected String accountName = null;
+	/**
+	 * payment means code
+	 */
+	protected String paymentMeansCode = "58";
+	/**
+	 * payment means information
+	 */
+	protected String paymentMeansInformation = "SEPA credit transfer";
+
+	/***
+	 * bean constructor
+	 */
+	public BankDetails() {
+	}
 
 	/***
 	 * constructor for IBAN only :-)
@@ -26,6 +45,7 @@ public class BankDetails implements IZUGFeRDTradeSettlementPayment {
 	public BankDetails(String IBAN) {
 		this.IBAN = IBAN;
 	}
+
 	/***
 	 * constructor for normal use :-)
 	 * @param IBAN the IBAN as string
@@ -49,6 +69,7 @@ public class BankDetails implements IZUGFeRDTradeSettlementPayment {
 	 * identify the IBAN. Of course you will specify your own IBAN in full length but
 	 * if you deduct from a customer's account you may e.g. leave out the first or last
 	 * digits so that nobody spying on the invoice gets to know the complete number
+	 *
 	 * @param IBAN the "IBAN ID", i.e. the IBAN or parts of it
 	 * @return fluent setter
 	 */
@@ -75,17 +96,20 @@ public class BankDetails implements IZUGFeRDTradeSettlementPayment {
 		return this;
 	}
 
-	/***
-	 *  getOwn... methods will be removed in the future in favor of Tradeparty (e.g. Sender) class
-	 * */
+
+	/*
+	I'd really like to get rid of all those getOwn... methods some time but in this case they are in the interface :-(
+	 */
 	@Override
 	@Deprecated
+	@JsonIgnore
 	public String getOwnBIC() {
 		return getBIC();
 	}
 
 	@Override
 	@Deprecated
+	@JsonIgnore
 	public String getOwnIBAN() {
 		return getIBAN();
 	}
@@ -93,11 +117,12 @@ public class BankDetails implements IZUGFeRDTradeSettlementPayment {
 
 	/**
 	 * set Holder
+	 *
 	 * @param name account name (usually account holder if != sender)
 	 * @return fluent setter
 	 */
 	public BankDetails setAccountName(String name) {
-		accountName=name;
+		accountName = name;
 		return this;
 	}
 
@@ -106,6 +131,31 @@ public class BankDetails implements IZUGFeRDTradeSettlementPayment {
 		return accountName;
 	}
 
+	/**
+	 * set payment means code
+	 *
+	 * @param paymentMeansCode the payment means code
+	 * @return fluent setter
+	 */
+	public BankDetails setPaymentMeansCode(String paymentMeansCode) {
+		this.paymentMeansCode = paymentMeansCode;
+		return this;
+	}
 
+	@Override
+	public String getPaymentMeansCode() { return paymentMeansCode; }
 
+	/**
+	 * set payment means information
+	 *
+	 * @param paymentMeansInformation the payment mean information
+	 * @return fluent setter
+	 */
+	public BankDetails setPaymentMeansInformation(String paymentMeansInformation) {
+		this.paymentMeansInformation = paymentMeansInformation;
+		return this;
+	}
+
+	@Override
+	public String getPaymentMeansInformation() { return paymentMeansInformation; }
 }

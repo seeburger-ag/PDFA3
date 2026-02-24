@@ -15,9 +15,9 @@
  */
 package org.mustangproject.ZUGFeRD;
 
-import org.mustangproject.ZUGFeRD.model.TaxCategoryCodeTypeConstants;
-
 import java.math.BigDecimal;
+
+import org.mustangproject.ZUGFeRD.model.TaxCategoryCodeTypeConstants;
 
 /**
  * The interface for allowances or charges, to be used by the pullprovider
@@ -39,10 +39,22 @@ public interface IZUGFeRDAllowanceCharge {
 	default BigDecimal getPercent() {return null;}
 
 	/***
+	 * returns a basis the precentage is calculated from
+	 * @return null or the basis
+	 */
+	default BigDecimal getBasisAmount() {return null;}
+
+	/***
 	 * get a description for the allowance/charge
 	 * @return the description
 	 */
 	String getReason();
+
+	/***
+	 * get the code for the allowance/charge
+	 * @return the code
+	 */
+	String getReasonCode();
 
 	/***
 	 * get the applicable tax percentage for the allowance/charge

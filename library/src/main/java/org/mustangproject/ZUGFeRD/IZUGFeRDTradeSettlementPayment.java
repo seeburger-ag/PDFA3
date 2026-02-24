@@ -18,6 +18,7 @@
  *********************************************************************** */
 package org.mustangproject.ZUGFeRD;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.mustangproject.XMLTools;
 
 public interface IZUGFeRDTradeSettlementPayment extends IZUGFeRDTradeSettlement {
@@ -27,6 +28,7 @@ public interface IZUGFeRDTradeSettlementPayment extends IZUGFeRDTradeSettlement 
 	 *
 	 * @return payment information text
 	 */
+	@JsonIgnore
 	default String getOwnPaymentInfoText() {
 		return null;
 	}
@@ -57,8 +59,19 @@ public interface IZUGFeRDTradeSettlementPayment extends IZUGFeRDTradeSettlement 
 	 */
 	default String getAccountName() { return null; }
 
+	/***
+	 * @return payment means code (BT-81 / UNTDID 4461)
+	 */
+	default String getPaymentMeansCode() { return null; };
+
+	/***
+	 * @return payment means description (BT-82) (optional)
+	 */
+	default String getPaymentMeansInformation() { return null; };
+
 
 	@Override
+	@JsonIgnore
   default String getSettlementXML() {
 		String accountNameStr="";
 		if (getAccountName()!=null) {
@@ -67,12 +80,14 @@ public interface IZUGFeRDTradeSettlementPayment extends IZUGFeRDTradeSettlement 
 		}
 
 		String xml = "<ram:SpecifiedTradeSettlementPaymentMeans>"
-				+ "<ram:TypeCode>58</ram:TypeCode>"
-				+ "<ram:Information>SEPA credit transfer</ram:Information>"
-				+ "<ram:PayeePartyCreditorFinancialAccount>"
-				+ "<ram:IBANID>" + XMLTools.encodeXML(getOwnIBAN()) + "</ram:IBANID>";
-		xml+= accountNameStr;
-		xml+= "</ram:PayeePartyCreditorFinancialAccount>";
+				+ "<ram:TypeCode>" + XMLTools.encodeXML(getPaymentMeansCode()) + "</ram:TypeCode>"
+				+ "<ram:Information>" + XMLTools.encodeXML(getPaymentMeansInformation()) + "</ram:Information>";
+		if (getOwnIBAN() != null) {
+			xml += "<ram:PayeePartyCreditorFinancialAccount>"
+				+ "<ram:IBANID>" + XMLTools.encodeXML(getOwnIBAN()) + "</ram:IBANID>"
+				+ accountNameStr
+				+ "</ram:PayeePartyCreditorFinancialAccount>";
+		}
 		if (getOwnBIC()!=null) {
 			xml+= "<ram:PayeeSpecifiedCreditorFinancialInstitution>"
 					+ "<ram:BICID>" + XMLTools.encodeXML(getOwnBIC()) + "</ram:BICID>"

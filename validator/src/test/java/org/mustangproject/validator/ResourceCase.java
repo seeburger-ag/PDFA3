@@ -5,16 +5,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import junit.framework.TestCase;
+
+@Ignore
 public class ResourceCase extends TestCase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceCase.class.getCanonicalName()); // log output is
 	
 	public static File getResourceAsFile(String resourcePath) {
-		try {
-			InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath);
+		try(InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath)) {
 			if (in == null) {
 				return null;
 			}
@@ -36,5 +39,18 @@ public class ResourceCase extends TestCase {
 			return null;
 		}
 	}
+
+	public static byte[] getResourceAsByteArray(String resourcePath) {
+		try(InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath)) {
+			if (in == null) {
+				return null;
+			}
+			return IOUtils.toByteArray(in);
+		} catch (IOException e) {
+			LOGGER.error(e.getMessage(), e);
+			return null;
+		}
+	}
+
 
 }

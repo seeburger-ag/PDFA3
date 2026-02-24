@@ -14,12 +14,21 @@ public class ValidationContext {
 	private String profile = null;
 	private String signature = null;
 	private boolean isValid = true;
+	private boolean hasPDF = false;
 	protected Logger logger;
 	private String filename;
 
 	public ValidationContext(Logger log) {
 		logger = log;
 		results = new Vector<>();
+	}
+
+	public void setHasPDF() {
+		hasPDF=true;
+	}
+
+	public boolean hasPDF() {
+		return hasPDF;
 	}
 
 	public void addResultItem(ValidationResultItem vr) throws IrrecoverableValidationError {
@@ -32,13 +41,13 @@ public class ValidationContext {
 		}
 		if (logger != null) {
 			if ((vr.getSeverity() == ESeverity.fatal) || (vr.getSeverity() == ESeverity.exception)) {
-				logger.error("Fatal Error " + vr.getSection() + ": " + vr.getMessage());
+				logger.error("Fatal Error {}: {}", vr.getSection(), vr.getMessage());
 			} else if ((vr.getSeverity() == ESeverity.error)) {
-				logger.error("Error " + vr.getSection() + ": " + vr.getMessage());
+				logger.error("Error {}: {}", vr.getSection(), vr.getMessage());
 			} else if (vr.getSeverity() == ESeverity.warning) {
-				logger.warn("Warning " + vr.getSection() + ": " + vr.getMessage());
+				logger.warn("Warning {}: {}", vr.getSection(), vr.getMessage());
 			} else if (vr.getSeverity() == ESeverity.notice) {
-				logger.info("Notice " + vr.getSection() + ": " + vr.getMessage());
+				logger.info("Notice {}: {}", vr.getSection(), vr.getMessage());
 			}
 		}
 
@@ -70,7 +79,7 @@ public class ValidationContext {
 	}
 
 	public ValidationContext setProfile(String profile) {
-		this.profile = profile;
+		this.profile = profile.trim();
 		return this;
 	}
 
@@ -106,20 +115,17 @@ public class ValidationContext {
 	}
 
 	public String getXMLResult() {
-		String res = getCustomXML();
-		if (results.size() > 0) {
-			res += "<messages>";
+		StringBuilder res = new StringBuilder(getCustomXML());
+		if (results != null && !results.isEmpty()) {
+			res.append("<messages>");
+			for (final ValidationResultItem validationResultItem : results) {
+				// xml and pdf are handled in their respective sections
+				res.append(validationResultItem.getXMLOnce()).append("\n");
+			}
+			res.append("</messages>");
 		}
-
-		for (final ValidationResultItem validationResultItem : results) {
-			// xml and pdf are handled in their respective sections
-			res += validationResultItem.getXMLOnce() + "\n";	
-		}
-		if (results.size() > 0) {
-			res += "</messages>";
-		}
-		res += "<summary status=\"" + (isValid ? "valid" : "invalid") + "\"/>";
-		return res;
+		res.append("<summary status=\"").append(isValid ? "valid" : "invalid").append("\"/>");
+		return res.toString();
 	}
 
 	/***
@@ -133,6 +139,22 @@ public class ValidationContext {
 			errorcodes.add(errorCodeStr);
 		}
 		return String.join(",", errorcodes);
+	}
+
+	/***
+	 *
+	 * @return the unique error IDs as comma separated string
+	 */
+	public String getCSVIDResult() {
+		final ArrayList<String> errorIDs = new ArrayList<>();
+		for (final ValidationResultItem validationResultItem : results) {
+			if (!validationResultItem.getID().isEmpty()) {
+				final String errorID=validationResultItem.getID();
+				errorIDs.add(errorID);
+
+			}
+		}
+		return String.join(",", errorIDs);
 	}
 
 	public void setInvalid() {

@@ -30,8 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -39,9 +37,11 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 import org.mustangproject.XMLTools;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class ZUGFeRD1PullProvider extends ZUGFeRD2PullProvider implements IXMLProvider {
-
+public class ZUGFeRD1PullProvider extends ZUGFeRD2PullProvider {
+  private static final Logger LOGGER = LoggerFactory.getLogger (ZUGFeRD1PullProvider.class);
 
 	//// MAIN CLASS
 
@@ -91,19 +91,19 @@ public class ZUGFeRD1PullProvider extends ZUGFeRD2PullProvider implements IXMLPr
 		final StringWriter sw = new StringWriter();
 		Document document = null;
 		try {
-			document = DocumentHelper.parseText(new String(zugferdData));
+			document = DocumentHelper.parseText(new String(zugferdData, StandardCharsets.UTF_8));
 		} catch (final DocumentException e1) {
-			Logger.getLogger(ZUGFeRD1PullProvider.class.getName()).log(Level.SEVERE, null, e1);
+			LOGGER.error ("Failed to parse ZUGFeRD data", e1);
 		}
 		try {
 			final OutputFormat format = OutputFormat.createPrettyPrint();
 			format.setTrimText(false);
 			final XMLWriter writer = new XMLWriter(sw, format);
 			writer.write(document);
-			res = sw.toString().getBytes("UTF-8");
+			res = sw.toString().getBytes(StandardCharsets.UTF_8);
 
 		} catch (final IOException e) {
-			Logger.getLogger(ZUGFeRD1PullProvider.class.getName()).log(Level.SEVERE, null, e);
+      LOGGER.error ("Failed to write ZUGFeRD data", e);
 		}
 
 		return res;
@@ -344,7 +344,7 @@ public class ZUGFeRD1PullProvider extends ZUGFeRD2PullProvider implements IXMLPr
 			}
 
 
-			final LineCalculator lc = new LineCalculator(currentItem);
+			final LineCalculator lc = currentItem.getCalculation();
 			xml += "<ram:IncludedSupplyChainTradeLineItem>" +
 					"<ram:AssociatedDocumentLineDocument>"
 					+ "<ram:LineID>" + lineID + "</ram:LineID>"
@@ -387,9 +387,10 @@ public class ZUGFeRD1PullProvider extends ZUGFeRD2PullProvider implements IXMLPr
 					+ "<ram:LineTotalAmount currencyID=\"" + trans.getCurrency() + "\">" + currencyFormat(lc.getItemTotalNetAmount())
 					+ "</ram:LineTotalAmount>"
 					+ "</ram:SpecifiedTradeSettlementMonetarySummation>";
-			if (currentItem.getAdditionalReferencedDocumentID() != null) {
+			if (currentItem.getAdditionalReferences() != null) {
+				xml += "<ram:AdditionalReferencedDocument><ram:ID>" + currentItem.getAdditionalReferences()[0].getIssuerAssignedID() + "</ram:ID><ram:TypeCode>130</ram:TypeCode></ram:AdditionalReferencedDocument>";
+			} else if (currentItem.getAdditionalReferencedDocumentID() != null) {
 				xml += "<ram:AdditionalReferencedDocument><ram:ID>" + currentItem.getAdditionalReferencedDocumentID() + "</ram:ID><ram:TypeCode>130</ram:TypeCode></ram:AdditionalReferencedDocument>";
-
 			}
 			xml += "</ram:SpecifiedSupplyChainTradeSettlement>"
 					+ "<ram:SpecifiedTradeProduct>";
@@ -432,44 +433,57 @@ public class ZUGFeRD1PullProvider extends ZUGFeRD2PullProvider implements IXMLPr
 	}
 
 	private String buildPaymentTermsXml() {
-		String paymentTermsXml = "<ram:SpecifiedTradePaymentTerms>";
+		final IZUGFeRDPaymentTerms[] paymentTerms = trans.getExtendedPaymentTerms();
 
-		final IZUGFeRDPaymentTerms paymentTerms = trans.getPaymentTerms();
-		final IZUGFeRDPaymentDiscountTerms discountTerms = paymentTerms.getDiscountTerms();
-		final Date dueDate = paymentTerms.getDueDate();
-		if (dueDate != null && discountTerms != null && discountTerms.getBaseDate() != null) {
-			throw new IllegalStateException(
+		String paymentTermsXml = "";
+		if (paymentTerms == null || paymentTerms.length == 0) {
+			return paymentTermsXml;
+		}
+
+		for (IZUGFeRDPaymentTerms pt : paymentTerms)
+		{
+			paymentTermsXml += "<ram:SpecifiedTradePaymentTerms>";
+
+			final IZUGFeRDPaymentDiscountTerms discountTerms = pt.getDiscountTerms();
+			final Date dueDate = pt.getDueDate();
+			if (dueDate != null && discountTerms != null && discountTerms.getBaseDate() != null)
+			{
+				throw new IllegalStateException(
 					"if paymentTerms.dueDate is specified, paymentTerms.discountTerms.baseDate has not to be specified");
-		}
-		paymentTermsXml += "<ram:Description>" + paymentTerms.getDescription() + "</ram:Description>";
-		if (dueDate != null) {
-			paymentTermsXml += "<ram:DueDateDateTime>";
-			paymentTermsXml += DATE.udtFormat(dueDate);
-			paymentTermsXml += "</ram:DueDateDateTime>";
-		}
-
-		if (discountTerms != null) {
-			paymentTermsXml += "<ram:ApplicableTradePaymentDiscountTerms>";
-			final String currency = trans.getCurrency();
-			final String basisAmount = currencyFormat(calc.getGrandTotal());
-			paymentTermsXml += "<ram:BasisAmount currencyID=\"" + currency + "\">" + basisAmount + "</ram:BasisAmount>";
-			paymentTermsXml += "<ram:CalculationPercent>" + discountTerms.getCalculationPercentage().toString()
-					+ "</ram:CalculationPercent>";
-
-			if (discountTerms.getBaseDate() != null) {
-				final Date baseDate = discountTerms.getBaseDate();
-				paymentTermsXml += "<ram:BasisDateTime>";
-				paymentTermsXml += DATE.udtFormat(baseDate);
-				paymentTermsXml += "</ram:BasisDateTime>";
-
-				paymentTermsXml += "<ram:BasisPeriodMeasure unitCode=\"" + discountTerms.getBasePeriodUnitCode() + "\">"
-						+ discountTerms.getBasePeriodMeasure() + "</ram:BasisPeriodMeasure>";
+			}
+			paymentTermsXml += "<ram:Description>" + pt.getDescription() + "</ram:Description>";
+			if (dueDate != null)
+			{
+				paymentTermsXml += "<ram:DueDateDateTime>";
+				paymentTermsXml += DATE.udtFormat(dueDate);
+				paymentTermsXml += "</ram:DueDateDateTime>";
 			}
 
-			paymentTermsXml += "</ram:ApplicableTradePaymentDiscountTerms>";
-		}
+			if (discountTerms != null)
+			{
+				paymentTermsXml += "<ram:ApplicableTradePaymentDiscountTerms>";
+				final String currency = trans.getCurrency();
+				final String basisAmount = currencyFormat(calc.getGrandTotal());
+				paymentTermsXml += "<ram:BasisAmount currencyID=\"" + currency + "\">" + basisAmount + "</ram:BasisAmount>";
+				paymentTermsXml += "<ram:CalculationPercent>" + discountTerms.getCalculationPercentage().toString()
+					+ "</ram:CalculationPercent>";
 
-		paymentTermsXml += "</ram:SpecifiedTradePaymentTerms>";
+				if (discountTerms.getBaseDate() != null)
+				{
+					final Date baseDate = discountTerms.getBaseDate();
+					paymentTermsXml += "<ram:BasisDateTime>";
+					paymentTermsXml += DATE.udtFormat(baseDate);
+					paymentTermsXml += "</ram:BasisDateTime>";
+
+					paymentTermsXml += "<ram:BasisPeriodMeasure unitCode=\"" + discountTerms.getBasePeriodUnitCode() + "\">"
+						+ discountTerms.getBasePeriodMeasure() + "</ram:BasisPeriodMeasure>";
+				}
+
+				paymentTermsXml += "</ram:ApplicableTradePaymentDiscountTerms>";
+			}
+
+			paymentTermsXml += "</ram:SpecifiedTradePaymentTerms>";
+		}
 		return paymentTermsXml;
 	}
 

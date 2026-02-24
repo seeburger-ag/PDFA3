@@ -21,13 +21,12 @@
  */
 package org.mustangproject.ZUGFeRD;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.util.Date;
 
 import org.assertj.core.api.Assertions;
@@ -40,6 +39,8 @@ import org.mustangproject.Invoice;
 import org.mustangproject.Item;
 import org.mustangproject.Product;
 import org.mustangproject.TradeParty;
+
+import javax.xml.xpath.XPathExpressionException;
 
 public class UBLTest extends ResourceCase {
 	final String TARGET_XML = "./target/testout-1Lieferschein.xml";
@@ -81,7 +82,7 @@ public class UBLTest extends ResourceCase {
 				.setSender(new TradeParty("Test company", "teststr", "55232", "teststadt", "DE").addTaxID("DE4711").addVATID("DE0815").setContact(new Contact("Hans Test", "+49123456789", "test@example.org")).addBankDetails(new BankDetails("DE12500105170648489890", "COBADEFXXX")))
 				.setRecipient(new TradeParty("Franz Müller", "teststr.12", "55232", "Entenhausen", "DE"))
 				.setReferenceNumber("991-01484-64")//leitweg-id
-				.setNumber("123").addItem(new Item(new Product("Testprodukt", "", "C62", BigDecimal.ZERO), /*price*/ new BigDecimal("1.0"),  /*qty*/ new BigDecimal("1.0")).addReferencedLineID("A12"));
+				.setNumber("123").addItem(new Item(new Product("Testprodukt", "", "C62", BigDecimal.ZERO), /*price*/ new BigDecimal("1.0"),  /*qty*/ new BigDecimal("1.0")).addBuyerOrderReferencedDocumentLineID("A12"));
 
 
 		try {
@@ -89,7 +90,7 @@ public class UBLTest extends ResourceCase {
 			final ByteArrayOutputStream baos=new ByteArrayOutputStream();
 			oe.export(baos);
 
-			final String theXML = baos.toString("UTF-8");
+			final String theXML = baos.toString(StandardCharsets.UTF_8);
 			assertTrue(theXML.contains("<DespatchAdvice"));
 			Files.write(Paths.get(TARGET_XML), theXML.getBytes(StandardCharsets.UTF_8));
 		} catch (final IOException e) {
@@ -98,4 +99,47 @@ public class UBLTest extends ResourceCase {
 
 
 	}
+
+	public void testEdgeInvoiceImportUBL() {
+
+		File UBLinputFile = getResourceAsFile("ubl/01.01a-INVOICE.ubl.xml");
+		boolean hasExceptions = false;
+
+		ZUGFeRDInvoiceImporter zii = null;
+		Invoice invoice = null;
+		try {
+			zii = new ZUGFeRDInvoiceImporter(new FileInputStream(UBLinputFile));
+			invoice = zii.extractInvoice();
+		} catch (XPathExpressionException | ParseException | FileNotFoundException e) {
+			hasExceptions = true;
+		}
+		assertFalse(hasExceptions);
+		// Reading ZUGFeRD
+		assertEquals(new BigDecimal("288.79"), invoice.getZFItems()[0].getPrice());
+		assertEquals("04011000-12345-03", invoice.getReferenceNumber());
+		assertEquals("seller@email.de", invoice.getSender().getContact().getEMail());
+		assertEquals("12345", invoice.getRecipient().getZIP());
+		assertEquals("DE75512108001245126199", invoice.getSender().getBankDetails().get(0).getIBAN());
+
+	}
+
+	public void testEdgeInvoiceImportUBL2() {
+		File UBLinputFile = getResourceAsFile("ubl/04.01a-INVOICE_ubl.xml");
+		boolean hasExceptions = false;
+
+		ZUGFeRDInvoiceImporter zii = null;
+		Invoice invoice = null;
+		try {
+			zii = new ZUGFeRDInvoiceImporter(new FileInputStream(UBLinputFile));
+			invoice = zii.extractInvoice();
+		} catch (XPathExpressionException | ParseException | FileNotFoundException e) {
+			e.printStackTrace();
+			hasExceptions = true;
+		}
+		assertFalse(hasExceptions);
+
+		assertEquals(new BigDecimal("10000.0"), invoice.getTotalPrepaidAmount());
+		assertEquals("4621231", invoice.getSender().getContact().getFax());
+	}
+
 }
