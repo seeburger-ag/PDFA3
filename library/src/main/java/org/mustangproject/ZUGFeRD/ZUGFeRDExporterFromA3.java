@@ -242,32 +242,21 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 	 * @return the filename of the file to be embedded
 	 */
 	public String getFilenameForVersion(int ver, Profile profile) {
-<<<<<<< HEAD
 		boolean isXRechnung =
 			(ver >= 2) && (this.profile != null) &&
 			this.profile.getName().equalsIgnoreCase(Profiles.getByName("XRECHNUNG").getName());
 
 		if (isFacturX && (!isXRechnung)) {
-=======
-		if ("XRECHNUNG".equals(profile.getName())) {
-			return "xrechnung.xml";
-		}
-		if (isFacturX) {
->>>>>>> refs/remotes/origin/master
 			return "factur-x.xml";
 		} else {
 			if (ver == 1) {
 				return "ZUGFeRD-invoice.xml";
 			} else {
-<<<<<<< HEAD
 				if (isXRechnung) {
 					return "xrechnung.xml";
 				} else {
 					return "zugferd-invoice.xml";
 				}
-=======
-				return "zugferd-invoice.xml";
->>>>>>> refs/remotes/origin/master
 			}
 		}
 	}
@@ -580,7 +569,6 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
 
 		String metaDataVersion = null; // default will be used
 
-<<<<<<< HEAD
     	// Legacy 2.0 behavior
     	if (this.isLegacy20Version)
     	{
@@ -592,13 +580,6 @@ public class ZUGFeRDExporterFromA3 extends XRExporter implements IZUGFeRDExporte
     	{
     		metaDataVersion = this.XRechnungVersion;
     	}
-=======
-		// The XRechnung version may be settable from outside.
-		if ((this.XRechnungVersion != null) && (this.profile != null) &&
-			this.profile.getName().equalsIgnoreCase(Profiles.getByName("XRECHNUNG").getName())) {
-			metaDataVersion = this.XRechnungVersion;
-		}
->>>>>>> refs/remotes/origin/master
 
 		if (attachZUGFeRDHeaders) {
 			XMPSchemaZugferd zf = new XMPSchemaZugferd(metadata, ZFVersion, isFacturX, xmlProvider.getProfile(),
