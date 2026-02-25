@@ -22,10 +22,7 @@
 package org.mustangproject.ZUGFeRD;
 
 import java.io.ByteArrayInputStream;
-<<<<<<< HEAD
-=======
 import java.io.FileInputStream;
->>>>>>> refs/remotes/origin/master
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -142,19 +139,7 @@ public class ZF2PushTest extends TestCase {
 		String orgname = "Test company";
 		String number = "123";
 		String priceStr = "1.00";
-<<<<<<< HEAD
-		String taxID = "9990815";
-		BigDecimal price = new BigDecimal(priceStr);
-		try (InputStream SOURCE_PDF = this.getClass()
-			.getResourceAsStream("/MustangGnuaccountingBeispielRE-20170509_505blanko.pdf");
-=======
->>>>>>> refs/remotes/origin/master
 
-<<<<<<< HEAD
-			 ZUGFeRDExporterFromA1 ze = new ZUGFeRDExporterFromA1().setProducer("My Application")
-				 .setCreator(System.getProperty("user.name")).setZUGFeRDVersion(2).ignorePDFAErrors()
-				 .load(SOURCE_PDF)) {
-=======
 		String senderDescription = "Kleinunternehmer";
 		String taxID = "9990815";
 		String theNote = "oh lala";
@@ -166,7 +151,6 @@ public class ZF2PushTest extends TestCase {
 			ze.ignorePDFAErrors();
 			ze.load(SOURCE_PDF);
 			ze.setProducer("My Application").setCreator(System.getProperty("user.name")).setZUGFeRDVersion(2);
->>>>>>> refs/remotes/origin/master
 
 			byte[] b = {12, 13};
 			ze.attachFile("one.pdf", b, "application/pdf", "Alternative");
@@ -317,44 +301,6 @@ public class ZF2PushTest extends TestCase {
 		} catch (Exception e) {
 			fail("Exception should not be raised");
 		}
-	}
-	public void testBankTransferExport() {
-
-		String orgname = "Test company";
-		String number = "123";
-		String priceStr = "1.00";
-		String taxID = "9990815";
-		BigDecimal price = new BigDecimal(priceStr);
-		try (InputStream SOURCE_PDF = this.getClass()
-			.getResourceAsStream("/MustangGnuaccountingBeispielRE-20170509_505blanko.pdf");
-
-			 ZUGFeRDExporterFromA1 ze = new ZUGFeRDExporterFromA1().setProducer("My Application")
-				 .setCreator(System.getProperty("user.name")).setZUGFeRDVersion(2).ignorePDFAErrors()
-				 .load(SOURCE_PDF)) {
-
-			String IBAN="DE999888777";
-			String BIC="COBADEFXXX";
-			BankDetails bd=new BankDetails(IBAN, BIC);
-			ze.setTransaction(new Invoice().setDueDate(new Date()).setIssueDate(new Date()).setDeliveryDate(new Date()).setSender(new TradeParty(orgname, "teststr", "55232", "teststadt", "DE").addBankDetails(bd).addTaxID(taxID)).setOwnVATID("DE0815").setRecipient(new TradeParty("Franz Müller", "teststr.12", "55232", "Entenhausen", "DE").addVATID("DE4711").setContact(new Contact("Franz Müller", "01779999999", "franz@mueller.de", "teststr. 12", "55232", "Entenhausen", "DE"))).setNumber(number).addItem(new Item(new Product("Testprodukt", "", "C62", new BigDecimal(19)), price, new BigDecimal(1.0)))
-
-			);
-			String theXML = new String(ze.getProvider().getXML());
-			Invoice read=new Invoice();
-			ZUGFeRDInvoiceImporter zii=new ZUGFeRDInvoiceImporter(new ByteArrayInputStream(theXML.getBytes(StandardCharsets.UTF_8)));
-			zii.extractInto(read);
-			assertTrue(theXML.contains("<rsm:CrossIndustryInvoice"));
-
-			//assertEquals(IBAN,read.getSender().getBankDetails().get(0).getIBAN());
-			ze.export(TARGET_BANKPDF);
-		} catch (IOException e) {
-			fail("IOException should not be raised in testEdgeExport");
-		} catch (XPathExpressionException e) {
-			fail("XPathException should not be raised in testEdgeExport");
-        } catch (ParseException e) {
-			fail("ParseException should not be raised in testEdgeExport");
-        }
-
-
 	}
 
 	public void testItemChargesAllowancesExport() {

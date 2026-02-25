@@ -1,33 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-<<<<<<< HEAD
-=======
-    <parent>
-        <groupId>org.mustangproject</groupId>
-        <artifactId>core</artifactId>
-        <version>2.22.1-SNAPSHOT</version>
-    </parent>
->>>>>>> refs/remotes/origin/master
 
-<<<<<<< HEAD
 	<modelVersion>4.0.0</modelVersion>
     <groupId>com.seeburger.ZUGFeRD</groupId>
     <artifactId>mustang</artifactId>
-	<version>2.10.1.SEE2-SNAPSHOT</version>
+	<version>2.22.1.SEE1-SNAPSHOT</version>
 
 	<packaging>jar</packaging>
 	<name>Library to write, read and validate e-invoices (Factur-X, ZUGFeRD, Order-X, XRechnung/CII)</name>
-	<description>FOSS Java library to read, write and validate european electronic invoices and orders in the UN/CEFACT Cross Industry Invoice based formats Factur-X/ZUGFeRD, XRechnung and Order-X in your invoice PDFs.
-=======
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>library</artifactId>
-    <packaging>jar</packaging>
-    <name>Library to write, read and validate e-invoices (Factur-X, ZUGFeRD, Order-X, XRechnung/CII)</name>
     <description>FOSS Java library to read, write and validate european electronic invoices and orders in the UN/CEFACT
         Cross Industry Invoice based formats Factur-X/ZUGFeRD, XRechnung and Order-X in your invoice PDFs.
->>>>>>> refs/remotes/origin/master
     </description>
-<<<<<<< HEAD
 	<url>http://www.mustangproject.org/</url>
 	<scm>
       <connection>scm:git:git@github.com:seeburger-ag/PDFA3.git</connection>
@@ -54,10 +37,48 @@
 		<github.global.server>github</github.global.server>
 		<additionalparam>-Xdoclint:none</additionalparam>
 		<!-- Skip error check for javadoc -->
-		<maven.compiler.compilerVersion>8</maven.compiler.compilerVersion>
-		<maven.compiler.source>8</maven.compiler.source>
-		<maven.compiler.target>8</maven.compiler.target>
+		<maven.compiler.compilerVersion>11</maven.compiler.compilerVersion>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.release>11</maven.compiler.release>
+
+		<version.org.apache.maven.plugins.maven-compiler-plugin>3.13.0</version.org.apache.maven.plugins.maven-compiler-plugin><!-- from 2.3.2, 3.13.0 -->
+        <version.org.apache.maven.plugins.maven-deploy-plugin>3.0.0-M1</version.org.apache.maven.plugins.maven-deploy-plugin><!-- from 3.0.0-M1 -->
+        <version.org.apache.maven.plugins.maven-gpg-plugin>1.6</version.org.apache.maven.plugins.maven-gpg-plugin><!-- from 1.6 -->
+        <version.org.apache.maven.plugins.maven-jar-plugin>3.4.2</version.org.apache.maven.plugins.maven-jar-plugin><!-- from 3.2.0, 3.4.2 -->
+        <version.org.apache.maven.plugins.maven-javadoc-plugin>3.0.1</version.org.apache.maven.plugins.maven-javadoc-plugin><!-- from 3.0.1 -->
+        <version.org.apache.maven.plugins.maven-release-plugin>2.5.3</version.org.apache.maven.plugins.maven-release-plugin><!-- from 2.5.3 -->
+        <version.org.apache.maven.plugins.maven-resources-plugin>3.1.0</version.org.apache.maven.plugins.maven-resources-plugin><!-- from 3.1.0 -->
+        <version.org.apache.maven.plugins.maven-shade-plugin>3.5.3</version.org.apache.maven.plugins.maven-shade-plugin><!-- from 2.4.3, 3.5.3 -->
+        <version.org.apache.maven.plugins.maven-source-plugin>3.3.1</version.org.apache.maven.plugins.maven-source-plugin><!-- from 3.2.1, 3.3.1 -->
+        <version.org.apache.maven.plugins.maven-surefire-plugin>3.5.3</version.org.apache.maven.plugins.maven-surefire-plugin>
+        <version.org.apache.maven.plugins.maven-toolchains-plugin>3.1.0</version.org.apache.maven.plugins.maven-toolchains-plugin><!-- from 3.1.0 -->
+        <version.org.apache.maven.scm>1.9.5</version.org.apache.maven.scm>
+        <version.org.codehaus.mojo>1.0.0</version.org.codehaus.mojo>
+        <version.com.helger.maven>8.0.0</version.com.helger.maven>
+        <version.org.sonatype.plugins>1.7.0</version.org.sonatype.plugins>
+
+        <version.ch.qos.logback>1.5.18</version.ch.qos.logback><!-- from 1.5.16 -->
+        <version.com.fasterxml.jackson.core>2.17.3</version.com.fasterxml.jackson.core><!-- from 2.17.1 -->
+        <version.com.helger.en16931-cii2ubl>2.3.1</version.com.helger.en16931-cii2ubl><!-- from 2.3.0 -->
+        <version.com.helger.schematron>8.0.6</version.com.helger.schematron><!-- from 8.0.0 -->
+        <version.commons-cli>1.10.0</version.commons-cli><!-- from 1.8.0 -->
+        <version.commons-io>2.20.0</version.commons-io><!-- from 2.16.1 -->
+        <version.jakarta.xml.bind>4.0.2</version.jakarta.xml.bind>
+        <version.net.sf.saxon>12.8</version.net.sf.saxon><!-- from 12.4 -->
+        <version.org.apache.pdfbox>3.0.6</version.org.apache.pdfbox>
+        <version.org.apache.xmlgraphics>2.11</version.org.apache.xmlgraphics><!-- from 2.10 -->
+        <version.org.codehaus.janino>3.1.12</version.org.codehaus.janino><!-- from 3.1.7 -->
+        <version.org.dom4j>2.1.3</version.org.dom4j><!-- from 2.1.4 -->
+        <version.org.glassfish.jaxb>4.0.5</version.org.glassfish.jaxb>
+        <version.org.junit>5.13.4</version.org.junit><!-- from 5.10.2 -->
+        <version.org.skyscreamer>2.0-rc1</version.org.skyscreamer>
+        <version.org.slf4j>2.0.17</version.org.slf4j><!-- from 2.0.9, 2.0.12  -->
+        <version.org.verapdf>1.26.5</version.org.verapdf><!-- from 1.26.2 -->
+        <version.org.xmlunit>2.10.3</version.org.xmlunit><!-- from 2.10.0 -->
 	</properties>
+
+
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/net.sf.saxon/Saxon-HE -->
 
@@ -67,6 +88,8 @@
 			<artifactId>Saxon-HE</artifactId>
 			<version>9.9.0-1</version>
 		</dependency> -->
+
+		<!-- TODO: Ivan - all versions as properties -->
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -81,9 +104,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javax.activation</groupId>
-			<artifactId>activation</artifactId>
-			<version>1.1.1</version>
+		    <groupId>jakarta.activation</groupId>
+		    <artifactId>jakarta.activation-api</artifactId>
+		    <version>2.1.4</version>
+		    <scope>compile</scope>
 		</dependency>
 
 		<dependency>
@@ -95,11 +119,6 @@
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
 			<version>2.0.27</version>
-		</dependency>
-		<dependency>
-			<groupId>org.dom4j</groupId>
-			<artifactId>dom4j</artifactId>
-			<version>2.1.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -114,30 +133,6 @@
 			<scope>test</scope>
 		 </dependency>
 
-		<!-- CII to UBL conversion -->
-		<!-- TODO: Ivan
-		<dependency>
-			<groupId>com.helger</groupId>
-			<artifactId>en16931-cii2ubl</artifactId>
-			<version>1.3.0</version>
-		</dependency>  -->
-		<!-- https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime -->
-		<!-- TODO: Ivan
-		<dependency>
-			<groupId>org.glassfish.jaxb</groupId>
-			<artifactId>jaxb-runtime</artifactId>
-			<version>2.3.3</version>
-		</dependency> -->
-
-
-<!-- TODO: uncomment for GitHub
-		<dependency>
-			<groupId>com.helger</groupId>
-			<artifactId>ph-schematron</artifactId>
-			<version>5.0.4</version>
-			<scope>test</scope>
-		</dependency>-->
-
 		<dependency>
 			<groupId>org.xmlunit</groupId>
 			<artifactId>xmlunit-core</artifactId>
@@ -149,43 +144,10 @@
 			<groupId>org.xmlunit</groupId>
 			<artifactId>xmlunit-assertj</artifactId>
 			<version>2.9.1</version>
-=======
-    <url>http://www.mustangproject.org/</url>
-    <scm>
-        <connection>scm:git:https://github.com/ZUGFeRD/mustangproject.git</connection>
-        <developerConnection>scm:git:https://github.com/ZUGFeRD/mustangproject.git</developerConnection>
-        <url>https://github.com/ZUGFeRD/mustangproject</url>
-        <tag>core-2.3.2</tag>
-    </scm>
-    <repositories>
-        <repository><!-- for jargs -->
-            <id>sonatype-oss-public</id>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-    <distributionManagement>
-        <repository>
-            <id>internal.repo</id>
-            <name>Temporary Staging Repository</name>
-            <url>file://${project.build.directory}/mvn-repo</url>
-        </repository>
-    </distributionManagement>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <github.global.server>github</github.global.server>
-        <additionalparam>-Xdoclint:none</additionalparam>
-        <!-- Skip error check for javadoc -->
-        <maven.compiler.release>11</maven.compiler.release>
-        <maven.deploy.skip>true</maven.deploy.skip><!-- do deploy to maven central, parent project does not and inherits -->
-    </properties>
-    <dependencies>
-        <!-- compile dependencies -->
+			<scope>test</scope>
+	    </dependency>
+
+       <!-- compile dependencies -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -239,20 +201,20 @@
             </exclusions>
         </dependency>
         <!-- CII to UBL conversion -->
+        <!--
+	    TODO: Ivan
         <dependency>
             <groupId>com.helger</groupId>
             <artifactId>en16931-cii2ubl</artifactId>
             <version>${version.com.helger.en16931-cii2ubl}</version>
         </dependency>
+        -->
 
         <!-- test dependencies -->
         <dependency>
             <groupId>org.skyscreamer</groupId>
             <artifactId>jsonassert</artifactId>
             <version>${version.org.skyscreamer}</version>
->>>>>>> refs/remotes/origin/master
-            <scope>test</scope>
-<<<<<<< HEAD
 		</dependency>
 		<!-- API -->
 		<dependency>
@@ -266,6 +228,40 @@
                <artifactId>slf4j-api</artifactId>
                <version>1.7.7</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${version.org.junit}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${version.org.junit}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-core</artifactId>
+            <version>${version.org.xmlunit}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-assertj</artifactId>
+            <version>${version.org.xmlunit}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TODO: Ivan
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>${version.org.glassfish.jaxb}</version>
+            <scope>test</scope>
+        </dependency>
+        -->
 
 	</dependencies>
 	<build>
@@ -296,198 +292,12 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
-					<!-- http://stackoverflow.com/questions/574594/how-can-i-create-an-executable-jar-with-dependencies-using-maven
-=======
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>${version.org.junit}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>${version.org.junit}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.xmlunit</groupId>
-            <artifactId>xmlunit-core</artifactId>
-            <version>${version.org.xmlunit}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.xmlunit</groupId>
-            <artifactId>xmlunit-assertj</artifactId>
-            <version>${version.org.xmlunit}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>${version.org.glassfish.jaxb}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${version.org.apache.maven.plugins.maven-surefire-plugin}</version>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                    <argLine>-Duser.timezone=UTC</argLine>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${version.org.apache.maven.plugins.maven-compiler-plugin}</version>
-                <configuration>
-                    <!-- http://stackoverflow.com/questions/574594/how-can-i-create-an-executable-jar-with-dependencies-using-maven
->>>>>>> refs/remotes/origin/master
-                        mvn clean compile assembly:single -->
-<<<<<<< HEAD
+					<!-- http://stackoverflow.com/questions/574594/how-can-i-create-an-executable-jar-with-dependencies-using-maven -->
 					<!-- or whatever version you use -->
-					<source>8</source>
-					<target>8</target>
+					<source>11</source>
+					<target>11</target>
 				</configuration>
 			</plugin>
-			<plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-					<excludes>
-						<exclude>**/logback.xml</exclude>
-					</excludes>
-            <archive>
-                <manifest>
-                    <addClasspath>true</addClasspath>
-                </manifest>
-                <manifestSections>
-                    <manifestSection>
-                        <name>FreeSans.ttf</name>
-                        <manifestEntries>
-                            <Content-Type>font/ttf</Content-Type>
-                        </manifestEntries>
-                    </manifestSection>
-                    <manifestSection>
-                        <name>FreeSerif.ttf</name>
-                        <manifestEntries>
-                            <Content-Type>application/x-font</Content-Type>
-                        </manifestEntries>
-                    </manifestSection>
-                    <manifestSection>
-                        <name>Times-Bold.ttf</name>
-                        <manifestEntries>
-                            <Content-Type>application/x-font</Content-Type>
-                        </manifestEntries>
-                    </manifestSection>
-                </manifestSections>
-            </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.2.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.1</version>
-				<configuration>
-					<shadedArtifactAttached>false</shadedArtifactAttached>
-					<minimizeJar>false</minimizeJar><!-- no longer java 11 compatible if set to true because it removes e.g. javax/xml/bind/annotation/XmlSchema-->
-					<filters>
-
-						<filter>
-							<artifact>*:*</artifact>
-							<excludes>
-								<exclude>META-INF/*.SF</exclude>
-								<exclude>META-INF/*.DSA</exclude>
-								<exclude>META-INF/*.RSA</exclude>
-							</excludes>
-						</filter>
-						<filter>
-							<artifact>log4j:log4j</artifact>
-							<includes>
-								<include>**</include>
-							</includes>
-						</filter>
-						<filter>
-							<artifact>commons-logging:commons-logging</artifact>
-							<includes>
-								<include>**</include>
-							</includes>
-						</filter>
-					</filters>
-				</configuration>
-				<executions>
-					<execution>
-					    <!-- No bundled classes for the Seeburger version -->
-						<phase>none</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<excludes>
-									<!--exclude>classworlds:classworlds</exclude> <exclude>junit:junit</exclude>
-                                        <exclude>jmock:*</exclude> <exclude>*:xml-apis</exclude> <exclude>org.apache.maven:lib:tests</exclude>
-                                        <exclude>log4j:log4j:jar:</exclude -->
-								</excludes>
-							</artifactSet>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>templating-maven-plugin</artifactId>
-				<version>1.0.0</version>
-				<executions>
-					<execution>
-						<id>filtering-java-templates</id>
-						<goals>
-							<goal>filter-sources</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Running without tests at Seeburger -->
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.12.4</version>
-				<executions>
-					<execution>
-						<id>default-test</id>
-						<phase>none</phase>
-						<goals>
-							<goal>test</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
-=======
-                    <!-- or whatever version you use -->
-                    <source>11</source>
-                    <target>11</target>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -553,6 +363,8 @@
                     </archive>
                 </configuration>
             </plugin>
+
+            <!-- TODO: Ivan-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -566,13 +378,15 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+
+			<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>${version.org.apache.maven.plugins.maven-shade-plugin}</version>
                 <configuration>
-                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedArtifactAttached>false</shadedArtifactAttached>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
+   					<minimizeJar>false</minimizeJar><!-- no longer java 11 compatible if set to true because it removes e.g. javax/xml/bind/annotation/XmlSchema-->
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
@@ -597,7 +411,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <phase>none</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
@@ -607,22 +421,34 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>templating-maven-plugin</artifactId>
-                <version>${version.org.codehaus.mojo}</version>
-                <executions>
-                    <execution>
-                        <id>filtering-java-templates</id>
-                        <goals>
-                            <goal>filter-sources</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
->>>>>>> refs/remotes/origin/master
+				<version>1.0.0</version>
+				<executions>
+					<execution>
+						<id>filtering-java-templates</id>
+						<goals>
+							<goal>filter-sources</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Running without tests at Seeburger -->
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12.4</version>
+				<executions>
+					<execution>
+						<id>default-test</id>
+						<phase>none</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 
-<<<<<<< HEAD
 	<mailingLists>
 		<mailingList>
 			<name>User List</name>
@@ -666,72 +492,5 @@
           <url>http://repo.seeburger.de/archiva/repository/snapshot/</url>
       </snapshotRepository>
    </distributionManagement>
-=======
-    <profiles>
-        <profile>
-            <id>release-sign-artifacts</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-toolchains-plugin</artifactId>
-                        <version>${version.org.apache.maven.plugins.maven-toolchains-plugin}</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>toolchain</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <toolchains>
-                                <jdk>
-                                    <version>11</version>
-                                    <vendor>adopt</vendor>
-                                </jdk>
-                            </toolchains>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-    <mailingLists>
-        <mailingList>
-            <name>User List</name>
-            <archive>https://groups.google.com/forum/?hl=de#!forum/mustangproject</archive>
-        </mailingList>
-    </mailingLists>
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-            <comments>A business-friendly OSS license</comments>
-        </license>
-    </licenses>
-    <developers>
-        <developer>
-            <name>Jochen Stärk</name>
-            <email>jstaerk@usegroup.de</email>
-            <roles>
-                <role>architect</role>
-                <role>developer</role>
-            </roles>
-        </developer>
-        <developer>
-            <name>Alexander Schmidt</name>
-            <email>schmidt.alexander@mail.de</email>
-            <roles>
-                <role>developer</role>
-            </roles>
-        </developer>
-    </developers>
->>>>>>> refs/remotes/origin/master
+
 </project>
