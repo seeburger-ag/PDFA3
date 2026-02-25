@@ -22,38 +22,43 @@ import org.mustangproject.XMLTools;
 
 public interface IZUGFeRDTradeSettlementDebit extends IZUGFeRDTradeSettlement {
 
-	
-
 	@Override
 	default String getSettlementXML() {
-		
-	
-		
 		String xml = "<ram:SpecifiedTradeSettlementPaymentMeans>"
-				+ "<ram:TypeCode>59</ram:TypeCode>"
+				+ "<ram:TypeCode>" + XMLTools.encodeXML(getPaymentMeansCode()) + "</ram:TypeCode>"
+				+ "<ram:Information>" + XMLTools.encodeXML(getPaymentMeansInformation()) + "</ram:Information>"
 				+ "<ram:PayerPartyDebtorFinancialAccount>"
-      		    + "<ram:IBANID>"+XMLTools.encodeXML(getIBAN())+"</ram:IBANID>"
-      		    + "</ram:PayerPartyDebtorFinancialAccount>";
+				+ "<ram:IBANID>" + XMLTools.encodeXML(getIBAN()) + "</ram:IBANID>"
+				+ "</ram:PayerPartyDebtorFinancialAccount>";
 		
 		xml += "</ram:SpecifiedTradeSettlementPaymentMeans>";
 		return xml;
 	}
-	
+
 	@Override
 	default String getPaymentXML() {
-		return "<ram:DirectDebitMandateID>"+XMLTools.encodeXML(getMandate())+"</ram:DirectDebitMandateID>";
+		return "<ram:DirectDebitMandateID>" + XMLTools.encodeXML(getMandate()) + "</ram:DirectDebitMandateID>";
 	}
 
-	
+
 	/***
 	 * @return IBAN of the debtor (optional)
 	 */
 	String getIBAN();
 
-
 	/***
 	 * @return sepa direct debit mandate reference
 	 */
 	String getMandate();
+
+	/***
+	 * @return payment means code (BT-81 / UNTDID 4461)
+	 */
+	String getPaymentMeansCode();
+
+	/***
+	 * @return payment means description (BT-82) (optional)
+	 */
+	String getPaymentMeansInformation();
 
 }

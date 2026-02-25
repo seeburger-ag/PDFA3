@@ -1,11 +1,10 @@
 
-## General approach
+## Typical process
 
 1. build
 
 To check if the necessary tools are there, the build is in a stable state and works on your platform, e.g. download and extract https://github.com/ZUGFeRD/mustangproject/archive/master.zip and run ./mvnw clean package
 
-Mvnw is a maven wrapper which will download maven.Maven is the dependency management tool which will download all libraries, their dependencies, and build the whole thing.
 Mvnw is a maven wrapper which will download maven.Maven is the dependency management tool which will download all libraries, their dependencies, and build the whole thing.
 
 You will need a Java JDK, e.g. https://www.azul.com/downloads/zulu-community/?architecture=x86-64-bit&package=jdk
@@ -29,6 +28,18 @@ If you do a pull request, please do a feature branch, e.g. if you are working on
 Most of mustang is a library, adding (autmated junit) test cases is often not only the most sustainable but also the fastest way to see if new/changed functionality works. If something is changed so that old test cases break on purpose please do not just remove them but take the time to fix the test cases
 
 
+## Typical workflow
+
+If e.g. new elements or attributes are added, they are often added
+* in the object so that a developer can use them
+* in the interface so that a old fashioned developer could use them as well
+* in the pullprovider so that it actually finds it's way into the XML
+* in at least one test (the ...edgeTest are supposed to handle edge cases, ~all bells and whistles, maybe it fits there), after the test has been run this should at least once be 
+* validated. If that works one can start implementing the 
+* reading part (along with tests), then it needs to be
+* documented e.g. on the homepage and 
+* communicated, at the very least by mentioning it in the history.md
+
 ## Architecture
 
 Mustang contains a library to read/write e-invoices, 
@@ -46,22 +57,36 @@ to validate the XML part of the invoices.
 
 ![Architecture of the validator](ZUV-Architektur.svg "Graph of the architecture of the validator component")
 
-## New build
+## Aspects
+Apart from the fact that apart from 
+* the code
+* we need tests and apart from implementing it in 
 
-Target platform is java 1.8
+* the interface
+* usually we need functionality in or via the invoice class. 
+
+Reading should work for both
+* CII and
+* UBL
+
+And when writing, 
+* it should be readable as well, usually in the invoiceimporter, 
+* and it should be readable and writeable via Jackson (i.e. JSON)
 
 ## Build
 
+Target platform is java 1.17
+
 The package can be build with
 ```
-mvnw clean package
+mvn clean package
 ```
 
 In case you also want to generate  XSLT files from new schematron files for the validator please run the profile "generateXSLTFromSchematron"
 (which takes around 20min on my machine)
 
 ```
-mvnw clean package -P generateXSLTFromSchematron
+mvn clean package -P generateXSLTFromSchematron
 ```
 
 ## Test
@@ -115,14 +140,10 @@ The whole settings.xml then looks e.g. like this
       <offline/>
       <pluginGroups/>
       <servers>
-        <server> 
-      	<id>github</id> 
-      	<password>TOKEN</password> 
-        </server> 
     <server> 
       <id>ossrh</id> 
-      <username>jstaerk</username> 
-      <password>JIRA-PASSWORD</password> 
+      <username>SONATYPE TOKEN USER</username> 
+      <password>SONATYPE TOKEN PASSWORD</password> 
     </server> 
 
       </servers>
@@ -150,21 +171,21 @@ Sign in in GitHub and click on the profile picture -> Settings. Now just generat
 ![screenshot](development_documentation_screenshot_github_settings.png "Screenshot Github Settings")
  The Token-ID is the password. 
 
-In .m2 also need a toolchains.xml which defines a Sun JDK 1.8 target like the following: 
+In .m2 also need a toolchains.xml which defines a JDK 1.11 target like the following: 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <toolchains>
   <!-- JDK toolchains -->
-  <toolchain>
-    <type>jdk</type>
-    <provides>
-      <version>8</version>
-      <vendor>adopt</vendor>
-    </provides>
-    <configuration>
-      <jdkHome>C:\Program Files\Eclipse Adoptium\jdk-8.0.352.8-hotspot</jdkHome>
-    </configuration>
-  </toolchain>
+    <toolchain>
+        <type>jdk</type>
+        <provides>
+            <version>11</version>
+            <vendor>adopt</vendor>
+        </provides>
+        <configuration>
+            <jdkHome>C:\Program Files\Eclipse Adoptium\jdk-11.0.23.9-hotspot</jdkHome>
+        </configuration>
+    </toolchain>
  
 </toolchains>
 ```
@@ -177,11 +198,11 @@ maybe not yet even existing new release version:
 
 ```
 cd validator/target
-mvn install:install-file -Dfile=validator-2.5.5-SNAPSHOT-shaded.jar -DgroupId=org.mustangproject -DartifactId=validator -Dversion=2.5.5 -Dpackaging=jar -DgeneratePom=true
+mvn install:install-file -Dfile="validator-2.17.0-SNAPSHOT-shaded.jar" -Dclassifier=shaded -DgroupId="org.mustangproject" -DartifactId=validator -Dversion="2.17.0" -Dpackaging=jar -DgeneratePom=true
 ```
 In gradle you can use something like
 ```
-implementation files('libs/validator-2.5.6-shaded.jar')
+implementation files('libs/validator-2.17.0-shaded.jar')
 ```
 
 
@@ -222,3 +243,47 @@ extract, rename xsl file to xslt, move to new version dir and add a if where the
   * freshcode.club
   * Submit on openpr.de/.com, https://www.einpresswire.com/
  
+## Tips&amp;Inspriration
+
+
+NodeList from a XPath https://github.com/ZUGFeRD/mustangproject/pull/476/files
+```
+     	xpr = xpath.compile("//*[local-name()=\"PrepaidAmount\"]");
+		NodeList prepaidNodes = (NodeList) xpr.evaluate(getDocument(), XPathConstants.NODESET);
+		nodeMap.getNode("GlobalID").ifPresent(idNode -> {
+			if (idNode.hasAttributes()
+				&& idNode.getAttributes().getNamedItem("schemeID") != null) {
+				globalId = new SchemedID()
+					.setScheme(idNode.getAttributes().getNamedItem("schemeID").getNodeValue())
+					.setId(idNode.getTextContent());
+			}
+		});
+```
+
+nodeMap.getAsNodeMap and nodeMap.getAsString 
+```
+
+		nodeMap.getAsString("SellerAssignedID").ifPresent(this::setSellerAssignedID);
+		nodeMap.getAsString("BuyerAssignedID").ifPresent(this::setBuyerAssignedID);
+		nodeMap.getAsString("Name").ifPresent(this::setName);
+		nodeMap.getAsString("Description").ifPresent(this::setDescription);
+
+		nodeMap.getAsNodeMap("ApplicableProductCharacteristic").ifPresent(apcNodes -> {
+			String key = apcNodes.getAsStringOrNull("Description");
+			String value = apcNodes.getAsStringOrNull("Value");
+			if (key != null && value != null) {
+				if (attributes == null) {
+					attributes = new HashMap<>();
+				}
+				attributes.put(key, value);
+			}
+		});
+
+		nodeMap.getAsNodeMap("DesignatedProductClassification").ifPresent(dpcNodes -> {
+			String className = dpcNodes.getAsStringOrNull("ClassName");
+			dpcNodes.getNode("ClassCode").map(ClassCode::fromNode).ifPresent(classCode ->
+				classifications.add(new DesignatedProductClassification(classCode, className)));
+		});
+
+		nodeMap.getAsString("OriginTradeCounty").ifPresent(this::setCountryOfOrigin);
+```

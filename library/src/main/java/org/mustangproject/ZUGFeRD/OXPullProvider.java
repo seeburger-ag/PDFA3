@@ -22,26 +22,20 @@ package org.mustangproject.ZUGFeRD;
 
 import static org.mustangproject.ZUGFeRD.ZUGFeRDDateFormat.DATE;
 import static org.mustangproject.ZUGFeRD.model.DocumentCodeTypeConstants.CORRECTEDINVOICE;
-import static org.mustangproject.ZUGFeRD.model.TaxCategoryCodeTypeConstants.CATEGORY_CODES_WITH_EXEMPTION_REASON;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.mustangproject.EStandard;
 import org.mustangproject.FileAttachment;
-import org.mustangproject.IncludedNote;
+import org.mustangproject.ReferencedDocument;
 import org.mustangproject.XMLTools;
 
-public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider {
+public class OXPullProvider extends ZUGFeRD2PullProvider {
 
 	protected IExportableTransaction trans;
 	protected TransactionCalculator calc;
@@ -63,7 +57,7 @@ public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
       paymentTermsDescription = XMLTools.encodeXML(trans.getPaymentTermDescription());
 		}
 
-		if ((paymentTermsDescription == null) && (trans.getDocumentCode() != CORRECTEDINVOICE)/* && (trans.getDocumentCode() != DocumentCodeTypeConstants.CREDITNOTE)*/) {
+		if (paymentTermsDescription == null && !CORRECTEDINVOICE.equals(trans.getDocumentCode())/* && (trans.getDocumentCode() != DocumentCodeTypeConstants.CREDITNOTE)*/) {
 			paymentTermsDescription = "Zahlbar ohne Abzug bis " + germanDateFormat.format(trans.getDueDate());
 
 		}
@@ -113,7 +107,7 @@ public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 			//	exemptionReason = "<ram:ExemptionReason>" + XMLTools.encodeXML(currentItem.getProduct().getTaxExemptionReason()) + "</ram:ExemptionReason>";
 			}
     
-			final LineCalculator lc = new LineCalculator(currentItem);
+			final LineCalculator lc = currentItem.getCalculation();
 			xml += "<ram:IncludedSupplyChainTradeLineItem>" +
 					"<ram:AssociatedDocumentLineDocument>"
 					+ "<ram:LineID>" + lineID + "</ram:LineID>"
@@ -131,12 +125,12 @@ public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 						+ XMLTools.encodeXML(currentItem.getProduct().getBuyerAssignedID()) + "</ram:BuyerAssignedID>";
 			}
 			String allowanceChargeStr = "";
-			if (currentItem.getItemAllowances() != null && currentItem.getItemAllowances().length > 0) {
+			if (currentItem.getItemAllowances() != null) {
 				for (final IZUGFeRDAllowanceCharge allowance : currentItem.getItemAllowances()) {
 					allowanceChargeStr += getAllowanceChargeStr(allowance, currentItem);
 				}
 			}
-			if (currentItem.getItemCharges() != null && currentItem.getItemCharges().length > 0) {
+			if (currentItem.getItemCharges() != null) {
 				for (final IZUGFeRDAllowanceCharge charge : currentItem.getItemCharges()) {
 					allowanceChargeStr += getAllowanceChargeStr(charge, currentItem);
 
@@ -263,7 +257,7 @@ public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 		// Additional Documents of XRechnung (Rechnungsbegruendende Unterlagen - BG-24 XRechnung)
 		if (trans.getAdditionalReferencedDocuments() != null) {
 			for (final FileAttachment f : trans.getAdditionalReferencedDocuments()) {
-				final String documentContent = new String(Base64.getEncoder().encodeToString(f.getData()));
+				final String documentContent = Base64.getEncoder().encodeToString(f.getData());
 				xml += "<ram:AdditionalReferencedDocument>"
 						+ "<ram:IssuerAssignedID>" + f.getFilename() + "</ram:IssuerAssignedID>"
 						+ "<ram:TypeCode>916</ram:TypeCode>"
@@ -319,8 +313,9 @@ public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 			for (final IZUGFeRDTradeSettlementPayment payment : trans.getTradeSettlementPayment()) {
 				if (payment != null) {
 					hasDueDate = true;
-				//	xml += payment.getSettlementXML();
-				}
+                    break;
+                    //	xml += payment.getSettlementXML();
+                }
 			}
 		}
 		if (trans.getTradeSettlement() != null) {
@@ -333,17 +328,19 @@ public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 				}
 			}
 		}
-		if ((trans.getDocumentCode() == CORRECTEDINVOICE)/*||(trans.getDocumentCode() == DocumentCodeTypeConstants.CREDITNOTE)*/) {
-			hasDueDate = false;
+		if (trans.getDocumentCode() != null) {
+  		if ((trans.getDocumentCode().equals(CORRECTEDINVOICE))/*||(trans.getDocumentCode().equals (DocumentCodeTypeConstants.CREDITNOTE))*/) {
+  			hasDueDate = false;
+  		}
 		}
 
 		final Map<BigDecimal, VATAmount> VATPercentAmountMap = calc.getVATPercentAmountMap();
 		for (final BigDecimal currentTaxPercent : VATPercentAmountMap.keySet()) {
 			final VATAmount amount = VATPercentAmountMap.get(currentTaxPercent);
 			if (amount != null) {
-				final String amountCategoryCode = amount.getCategoryCode();
+			  /*final String amountCategoryCode = amount.getCategoryCode();
 				final boolean displayExemptionReason = CATEGORY_CODES_WITH_EXEMPTION_REASON.contains(amountCategoryCode);
-	/*			xml += "<ram:ApplicableTradeTax>\n"
+				xml += "<ram:ApplicableTradeTax>\n"
 						+ "<ram:CalculatedAmount>" + currencyFormat(amount.getCalculated())
 						+ "</ram:CalculatedAmount>\n" //currencyID=\"EUR\"
 						+ "<ram:TypeCode>VAT</ram:TypeCode>\n"
@@ -464,6 +461,19 @@ public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 			}
 			xml += "</ram:InvoiceReferencedDocument>";
 		}
+		if (trans.getInvoiceReferencedDocuments() != null) {
+			for (ReferencedDocument doc : trans.getInvoiceReferencedDocuments()) {
+				xml += "<ram:InvoiceReferencedDocument>"
+						+ "<ram:IssuerAssignedID>"
+						+ XMLTools.encodeXML(doc.getIssuerAssignedID()) + "</ram:IssuerAssignedID>";
+				if (doc.getFormattedIssueDateTime() != null) {
+					xml += "<ram:FormattedIssueDateTime>"
+							+ DATE.qdtFormat(doc.getFormattedIssueDateTime())
+							+ "</ram:FormattedIssueDateTime>";
+				}
+				xml += "</ram:InvoiceReferencedDocument>";
+			}
+		}
 
 		xml += "</ram:ApplicableHeaderTradeSettlement>";
 		// + " <IncludedSupplyChainTradeLineItem>"
@@ -479,13 +489,9 @@ public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 				+ "</rsm:SCRDMCCBDACIOMessageStructure>";
 
 		final byte[] zugferdRaw;
-		try {
-			zugferdRaw = xml.getBytes("UTF-8");
+		zugferdRaw = xml.getBytes(StandardCharsets.UTF_8);
 
-			zugferdData = XMLTools.removeBOM(zugferdRaw);
-		} catch (final UnsupportedEncodingException e) {
-			Logger.getLogger(OXPullProvider.class.getName()).log(Level.SEVERE, null, e);
-		}
+		zugferdData = XMLTools.removeBOM(zugferdRaw);
 	}
 
 
@@ -501,36 +507,44 @@ public class OXPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 
 	private String buildPaymentTermsXml() {
 
-		final IZUGFeRDPaymentTerms paymentTerms = trans.getPaymentTerms();
-		if (paymentTerms == null) {
+		final IZUGFeRDPaymentTerms[] paymentTerms = trans.getExtendedPaymentTerms();
+
+		String paymentTermsXml = "";
+		if (paymentTerms == null || paymentTerms.length == 0) {
 			return "";
 		}
-		String paymentTermsXml = "<ram:SpecifiedTradePaymentTerms>";
 
-		final IZUGFeRDPaymentDiscountTerms discountTerms = paymentTerms.getDiscountTerms();
-		paymentTermsXml += "<ram:Description>" + paymentTerms.getDescription() + "</ram:Description>";
-		if (discountTerms != null) {
-			paymentTermsXml += "<ram:ApplicableTradePaymentDiscountTerms>";
-			final String currency = trans.getCurrency();
-			final String basisAmount = currencyFormat(calc.getGrandTotal());
-			paymentTermsXml += "<ram:BasisAmount currencyID=\"" + currency + "\">" + basisAmount + "</ram:BasisAmount>";
-			paymentTermsXml += "<ram:CalculationPercent>" + discountTerms.getCalculationPercentage().toString()
+		for (IZUGFeRDPaymentTerms pt : paymentTerms)
+		{
+			paymentTermsXml += "<ram:SpecifiedTradePaymentTerms>";
+
+			final IZUGFeRDPaymentDiscountTerms discountTerms = pt.getDiscountTerms();
+			paymentTermsXml += "<ram:Description>" + pt.getDescription() + "</ram:Description>";
+			if (discountTerms != null)
+			{
+				paymentTermsXml += "<ram:ApplicableTradePaymentDiscountTerms>";
+				final String currency = trans.getCurrency();
+				final String basisAmount = currencyFormat(calc.getGrandTotal());
+				paymentTermsXml += "<ram:BasisAmount currencyID=\"" + currency + "\">" + basisAmount + "</ram:BasisAmount>";
+				paymentTermsXml += "<ram:CalculationPercent>" + discountTerms.getCalculationPercentage().toString()
 					+ "</ram:CalculationPercent>";
 
-			if (discountTerms.getBaseDate() != null) {
-				final Date baseDate = discountTerms.getBaseDate();
-				paymentTermsXml += "<ram:BasisDateTime>";
-				paymentTermsXml += DATE.udtFormat(baseDate);
-				paymentTermsXml += "</ram:BasisDateTime>";
+				if (discountTerms.getBaseDate() != null)
+				{
+					final Date baseDate = discountTerms.getBaseDate();
+					paymentTermsXml += "<ram:BasisDateTime>";
+					paymentTermsXml += DATE.udtFormat(baseDate);
+					paymentTermsXml += "</ram:BasisDateTime>";
 
-				paymentTermsXml += "<ram:BasisPeriodMeasure unitCode=\"" + discountTerms.getBasePeriodUnitCode() + "\">"
+					paymentTermsXml += "<ram:BasisPeriodMeasure unitCode=\"" + discountTerms.getBasePeriodUnitCode() + "\">"
 						+ discountTerms.getBasePeriodMeasure() + "</ram:BasisPeriodMeasure>";
+				}
+
+				paymentTermsXml += "</ram:ApplicableTradePaymentDiscountTerms>";
 			}
 
-			paymentTermsXml += "</ram:ApplicableTradePaymentDiscountTerms>";
+			paymentTermsXml += "</ram:SpecifiedTradePaymentTerms>";
 		}
-
-		paymentTermsXml += "</ram:SpecifiedTradePaymentTerms>";
 		return paymentTermsXml;
 	}
 

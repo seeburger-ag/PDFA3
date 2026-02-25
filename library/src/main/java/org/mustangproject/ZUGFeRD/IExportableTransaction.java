@@ -30,11 +30,15 @@ package org.mustangproject.ZUGFeRD;
  * */
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Date; 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.mustangproject.FileAttachment;
 import org.mustangproject.IncludedNote;
+import org.mustangproject.ReferencedDocument;
+import org.mustangproject.TradeParty;
 import org.mustangproject.ZUGFeRD.model.DocumentCodeTypeConstants;
 
 /***
@@ -140,6 +144,11 @@ public interface IExportableTransaction {
 		return null;
 	}
 
+	default IZUGFeRDCashDiscount[] getCashDiscounts() {	return null; }
+
+	/***
+	 * @return the invoice line items with the positions
+	 */
 	IZUGFeRDExportableItem[] getZFItems();
 
 	/**
@@ -174,6 +183,7 @@ public interface IExportableTransaction {
 	 *
 	 * @return Tax ID (not VAT ID) of the sender
 	 */
+	@JsonIgnore
 	default String getOwnTaxID() {
 		if (getSender() != null) {
 			return getSender().getTaxID();
@@ -187,6 +197,7 @@ public interface IExportableTransaction {
 	 *
 	 * @return VAT ID (Umsatzsteueridentifikationsnummer) of the sender
 	 */
+	@JsonIgnore
 	default String getOwnVATID() {
 		if (getSender() != null) {
 			return getSender().getVATID();
@@ -201,6 +212,24 @@ public interface IExportableTransaction {
 	 * @return the sender's identification
 	 */
 	default String getOwnForeignOrganisationID() {
+		return null;
+	}
+
+	/**
+	 * BT-17 tender or lot reference
+	 *
+	 * @return mandatory ID, optional Date
+	 */
+	default IReferencedDocument getTenderReferencedDocument() {
+		return null;
+	}
+
+	/**
+	 * BT-18 Invoiced Object Identifier
+	 *
+	 * @return mandatory ID, optional Date
+	 */
+	default IReferencedDocument getObjectIdentifierReferencedDocument() {
 		return null;
 	}
 
@@ -298,13 +327,24 @@ public interface IExportableTransaction {
 	}
 
 	/**
-	 * get payment terms. if set, getPaymentTermDescription() and getDueDate() are
-	 * ignored
+	 * get payment terms. if set, getPaymentTermDescription() and getDueDate() are ignored
 	 *
 	 * @return the IZUGFeRDPaymentTerms of the invoice
 	 */
 	default IZUGFeRDPaymentTerms getPaymentTerms() {
 		return null;
+	}
+
+	default String getPaymentReference() {
+		return null;
+	}
+
+	/**
+	 * Get payment terms for the EXTENDED profile (multiple terms are allowed)
+	 * @return
+	 */
+	default IZUGFeRDPaymentTerms[] getExtendedPaymentTerms() {
+		return new IZUGFeRDPaymentTerms[0];
 	}
 
 	/**
@@ -317,10 +357,20 @@ public interface IExportableTransaction {
 	}
 
 	/**
-	 * get reference document number typically used for Invoice Corrections Will be
-	 * added as IncludedNote in comfort profile
+	 * get the rounding amount 
+   * (only to be usef for NL whose currency requires a rounding to 5ct)
 	 *
-	 * @return the ID of the document this document refers to
+	 * @return the Bigdecimal
+	 */
+	default BigDecimal getRoundingAmount() {
+		return null;
+	}
+
+	/**
+	 * get BuyerReference (BT-10) an identifier assigned by the buyer and used
+	 * for internal routing. Used for the Leitweg-ID.
+	 * 
+	 * @return the BuyerReference of this document
 	 */
 	default String getReferenceNumber() {
 		return null;
@@ -410,11 +460,21 @@ public interface IExportableTransaction {
 	 *
 	 * @return the ID of the document
 	 */
+	@Deprecated
 	default String getInvoiceReferencedDocumentID() {
 		return null;
 	}
 
+	@Deprecated
 	default Date getInvoiceReferencedIssueDate() {
+		return null;
+	}
+	
+	/**
+	 * Getter for BG-3
+	 * @return list of documents
+	 */
+	default ArrayList<ReferencedDocument> getInvoiceReferencedDocuments() {
 		return null;
 	}
 
@@ -445,8 +505,34 @@ public interface IExportableTransaction {
 	 *
 	 * @return the IZUGFeRDExportableTradeParty delivery address
 	 */
-
 	default IZUGFeRDExportableTradeParty getDeliveryAddress() {
+		return null;
+	}
+
+	/***
+	 * payee / payment receiver, if different from seller, ram:Payee (only supported for zf2)
+	 *
+	 * @return the IZUGFeRDExportableTradeParty payment receiver, if different from seller
+	 */
+	default IZUGFeRDExportableTradeParty getPayee() {
+		return null;
+	}
+
+	/***
+	 * invoicer / invoice sender, if different from seller, ram:InvoicerTradeParty
+	 *
+	 * @return the IZUGFeRDExportableTradeParty invoice sender, if different from seller
+	 */
+	default IZUGFeRDExportableTradeParty getInvoicer() {
+		return null;
+	}
+
+	/***
+	 * invoicee / invoice receiver, if different from buyer, ram:InvoiceeTradeParty
+	 *
+	 * @return the IZUGFeRDExportableTradeParty invoice receiver, if different from buyer
+	 */
+	default IZUGFeRDExportableTradeParty getInvoicee() {
 		return null;
 	}
 
@@ -485,6 +571,26 @@ public interface IExportableTransaction {
 		return null;
 	}
 
+	/**
+	 * get delivery note document ID
+	 * ram:ApplicableHeaderTradeDelivery/ram:DeliveryNoteReferencedDocument/IssuerAssignedID
+	 *
+	 * @return the ID of the delivery note document
+	 */
+	default String getDeliveryNoteReferencedDocumentID() {
+		return null;
+	}
+
+	/**
+	 * get delivery note document date
+	 * ram:ApplicableHeaderTradeDelivery/ram:DeliveryNoteReferencedDocument/FormattedIssueDateTime
+	 *
+	 * @return the date of the delivery note document
+	 */
+	default Date getDeliveryNoteReferencedDocumentDate() {
+		return null;
+	}
+
 	/***
 	 * additional text description
 	 *
@@ -517,4 +623,7 @@ public interface IExportableTransaction {
 		return null;
 	}
 
+	default String getCreditorReferenceID() {
+		return null;
+	}
 }

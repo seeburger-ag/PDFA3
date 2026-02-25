@@ -37,7 +37,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ZF2EdgeTest extends MustangReaderTestCase implements IExportableTransaction {
+public class ZF2EdgeTest extends MustangReaderTestCase {
 	final String TARGET_PDF = "./target/testout-ZF2newEdge.pdf";
 
 	protected class EdgeProduct implements IZUGFeRDExportableProduct {
@@ -100,6 +100,16 @@ public class ZF2EdgeTest extends MustangReaderTestCase implements IExportableTra
 			return "DE99XX12345";
 		}
 
+		@Override
+		public String getPaymentMeansCode() {
+			return "54";
+		}
+
+		@Override
+		public String getPaymentMeansInformation() {
+			return "Credit Card";
+		}
+
 	}
 
 	@Override
@@ -132,6 +142,70 @@ public class ZF2EdgeTest extends MustangReaderTestCase implements IExportableTra
 	@Override
 	public String getOwnCountry() {
 		return "DE";
+	}
+
+	@Override
+	public IReferencedDocument getTenderReferencedDocument() {
+		return new IReferencedDocument() {
+			@Override
+			public String getIssuerAssignedID() {
+				return "983-jk-787";
+			}
+
+			@Override
+			public String getTypeCode() {
+				return "50";
+			}
+
+			@Override
+			public String getReferenceTypeCode() {
+				return "";
+			}
+
+			@Override
+			public Date getFormattedIssueDateTime() {
+				SimpleDateFormat sdf=new SimpleDateFormat("YYYY-mm-dd");
+				try {
+					return sdf.parse("2025-10-12");
+				} catch (ParseException e) {
+					// wont happen, I promise :-)
+				}
+				return null; // wont happen either
+			}
+
+		};
+	}
+
+
+	@Override
+	public IReferencedDocument getObjectIdentifierReferencedDocument() {
+		return new IReferencedDocument() {
+			@Override
+			public String getIssuerAssignedID() {
+				return "gPogKLtac0";
+			}
+
+			@Override
+			public String getTypeCode() {
+				return "130";
+			}
+
+			@Override
+			public String getReferenceTypeCode() {
+				return "";
+			}
+
+			@Override
+			public Date getFormattedIssueDateTime() {
+				SimpleDateFormat sdf=new SimpleDateFormat("YYYY-mm-dd");
+				try {
+					return sdf.parse("2026-01-26");
+				} catch (ParseException e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+		};
 	}
 
 	@Override
@@ -230,13 +304,11 @@ public class ZF2EdgeTest extends MustangReaderTestCase implements IExportableTra
 			e.printStackTrace();
 
 		}
-		return
-				new PaymentTerms(
-						"14 Tage 2% Skonto, 30 Tage rein netto",
-						due,// fälligkeitsdatum
-						paymentDiscountTerms //PaymentDiscountTerms
-				);
-
+		return new PaymentTerms(
+				"14 Tage 2% Skonto, 30 Tage rein netto",
+				due,// fälligkeitsdatum
+				paymentDiscountTerms //PaymentDiscountTerms
+			);
 	}
 
 	@Override
@@ -262,6 +334,16 @@ public class ZF2EdgeTest extends MustangReaderTestCase implements IExportableTra
 	@Override
 	public String getDespatchAdviceReferencedDocumentID() {
 		return "123";
+	}
+
+	@Override
+	public String getDeliveryNoteReferencedDocumentID() {
+		return "0815";
+	}
+
+	@Override
+	public Date getDeliveryNoteReferencedDocumentDate() {
+		return new GregorianCalendar(2016, Calendar.APRIL, 1).getTime();
 	}
 
 	/**
@@ -293,12 +375,16 @@ public class ZF2EdgeTest extends MustangReaderTestCase implements IExportableTra
 
 		// the writing part
 
-		try (InputStream SOURCE_PDF = this.getClass()
+		try  {
+			InputStream SOURCE_PDF = this.getClass()
 				.getResourceAsStream("/MustangGnuaccountingBeispielRE-20170509_505blanko.pdf");
 
-			 ZUGFeRDExporterFromA1 ze = new ZUGFeRDExporterFromA1().setProducer("My Application")
-					 .setCreator(System.getProperty("user.name")).setZUGFeRDVersion(2).setProfile(Profiles.getByName("Extended")).ignorePDFAErrors()
-					 .load(SOURCE_PDF)) {
+			ZUGFeRDExporterFromA1 ze = new ZUGFeRDExporterFromA1();
+			ze.ignorePDFAErrors();
+			ze.load(SOURCE_PDF);
+			ze.setProducer("My Application")
+				.setCreator(System.getProperty("user.name")).setZUGFeRDVersion(2).setProfile(Profiles.getByName("Extended"));
+
 			ze.setTransaction(this);
 			String theXML = new String(ze.getProvider().getXML(), StandardCharsets.UTF_8);
 			assertTrue(theXML.contains("<rsm:CrossIndustryInvoice"));
@@ -310,7 +396,8 @@ public class ZF2EdgeTest extends MustangReaderTestCase implements IExportableTra
 		// now check the contents (like MustangReaderTest)
 		ZUGFeRDImporter zi = new ZUGFeRDImporter(TARGET_PDF);
 		String resultXML=zi.getUTF8();
-		assertTrue(resultXML.contains("<ram:TypeCode>59</ram:TypeCode>"));
+		assertTrue(resultXML.contains("<ram:TypeCode>54</ram:TypeCode>"));
+		assertTrue(resultXML.contains("<ram:Information>Credit Card</ram:Information>"));
 		assertTrue(resultXML.contains("<ram:ShipToTradeParty>"));
 		assertTrue(resultXML.contains("<ram:IBANID>DE540815</ram:IBANID>"));
 		assertTrue(resultXML.contains("<ram:ApplicableTradePaymentDiscountTerms"));
@@ -322,7 +409,7 @@ public class ZF2EdgeTest extends MustangReaderTestCase implements IExportableTra
 		assertTrue(resultXML.contains("<ram:IssuerAssignedID>123</ram:IssuerAssignedID>"));
 
 		// Reading ZUGFeRD
-		assertEquals("337.60", zi.getAmount());;
+		assertEquals("337.60", zi.getAmount());
 		assertEquals(zi.getHolder(), getOwnOrganisationName());
 		assertEquals(zi.getForeignReference(), getNumber());
 		try {

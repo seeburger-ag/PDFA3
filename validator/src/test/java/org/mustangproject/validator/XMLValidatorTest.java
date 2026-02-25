@@ -1,7 +1,5 @@
 package org.mustangproject.validator;
 
-import static org.xmlunit.assertj.XmlAssert.assertThat;
-
 import java.io.File;
 
 import javax.xml.transform.Source;
@@ -9,6 +7,8 @@ import javax.xml.transform.Source;
 import org.xmlunit.builder.Input;
 import org.xmlunit.xpath.JAXPXPathEngine;
 import org.xmlunit.xpath.XPathEngine;
+
+import static org.xmlunit.assertj.XmlAssert.assertThat;
 
 public class XMLValidatorTest extends ResourceCase {
 
@@ -68,9 +68,9 @@ public class XMLValidatorTest extends ResourceCase {
 
 			xv.validate();
 		} catch (final IrrecoverableValidationError e) {
-			noException = false; //expecting a fatal error, i.e. an exception
+			noException = false; //after corrected dependencies no longer expecting a exception here
 		}
-		assertFalse(noException);
+		assertTrue(noException);
 		noException=true;// moving on...
 		assertTrue(xv.getXMLResult().contains("<error type=\"25\""));
 		ctx.clear();
@@ -206,6 +206,36 @@ public class XMLValidatorTest extends ResourceCase {
 
 	}
 
+	public void testXRCIIPeppolFailureValidation() {
+		final ValidationContext ctx = new ValidationContext(null);
+		final XMLValidator xv = new XMLValidator(ctx);
+		final XPathEngine xpath = new JAXPXPathEngine();
+
+		// GIVEN XRechnung CII with Peppol rule violation
+		File file = getResourceAsFile("CII_XRechnung_with_Peppol_violation.xml");
+
+		boolean noExceptions = true;
+		try {
+			xv.setFilename(file.getAbsolutePath());
+
+			// WHEN validated
+			xv.validate();
+
+			Source source = Input.fromString("<validation>" + xv.getXMLResult() + "</validation>").build();
+
+			// THEN validation returns only warning message
+			boolean onlyWarnings = Boolean.parseBoolean(xpath.evaluate("not(//messages/*[not(self::warning)])", source));
+			assertTrue(onlyWarnings);
+
+			// THEN validation returns summary status valid
+			String status = xpath.evaluate("/validation/summary/@status", source);
+			assertEquals("valid", status);
+		} catch (IrrecoverableValidationError e) {
+			noExceptions = false;
+		}
+		assertTrue(noExceptions);
+	}
+
 	public void testXRValidation() {
 		final ValidationContext ctx = new ValidationContext(null);
 		final XMLValidator xv = new XMLValidator(ctx);
@@ -228,6 +258,25 @@ public class XMLValidatorTest extends ResourceCase {
 			content = xpath.evaluate("/validation/summary/@status", source);
 			assertEquals("invalid", content);
 
+		} catch (final IrrecoverableValidationError e) {
+			// ignore, will be in XML output anyway
+		}
+
+	}
+
+	public void testXRSchemaValidation() {
+		final ValidationContext ctx = new ValidationContext(null);
+		final XMLValidator xv = new XMLValidator(ctx);
+		final XPathEngine xpath = new JAXPXPathEngine();
+
+		File tempFile = getResourceAsFile("invalidXRSchemav2.xml");
+		try {
+			xv.setFilename(tempFile.getAbsolutePath());
+			xv.validate();
+
+			Source source = Input.fromString("<validation>" + xv.getXMLResult() + "</validation>").build();
+			String content = xpath.evaluate("/validation/summary/@status", source);
+			assertEquals("invalid", content);
 
 		} catch (final IrrecoverableValidationError e) {
 			// ignore, will be in XML output anyway
@@ -235,7 +284,30 @@ public class XMLValidatorTest extends ResourceCase {
 
 	}
 
-	/* UBL validation is not yet there :-(
+	public void testArithmetics() {
+		final ValidationContext ctx = new ValidationContext(null);
+		final XMLValidator xv = new XMLValidator(ctx);
+		final XPathEngine xpath = new JAXPXPathEngine();
+
+		File tempFile = getResourceAsFile("invalidArithmetics.xml");
+		try {
+			xv.setFilename(tempFile.getAbsolutePath());
+			xv.validate();
+
+			String s="<validation>" + xv.getXMLResult() + "</validation>";
+			Source source = Input.fromString(s).build();
+			String content = xpath.evaluate("/validation/summary/@status", source);
+			assertEquals("valid", content);
+			assertThat(s).valueByXPath("count(//warning)")
+				.asInt()
+				.isEqualTo(4);
+
+		} catch (final IrrecoverableValidationError e) {
+			// ignore, will be in XML output anyway
+		}
+
+	}
+
 	public void testXRValidationUBL() {
 		ValidationContext ctx = new ValidationContext(null);
 		XMLValidator xv = new XMLValidator(ctx);
@@ -258,6 +330,71 @@ public class XMLValidatorTest extends ResourceCase {
 		}
 		assertTrue(noExceptions);
 
-	}*/
+	}
+
+
+	public void testUBLValidation() {
+		ValidationContext ctx = new ValidationContext(null);
+		XMLValidator xv = new XMLValidator(ctx);
+		XPathEngine xpath = new JAXPXPathEngine();
+
+		boolean noExceptions = true;
+		File tempFile = getResourceAsFile("EN16931_Einfach.ubl.xml");
+		try {
+			xv.setFilename(tempFile.getAbsolutePath());
+			xv.validate();
+
+			Source source = Input.fromString("<validation>" + xv.getXMLResult() + "</validation>").build();
+			String content = xpath.evaluate("/validation/summary/@status", source);
+			assertEquals("valid", content);
+
+
+		} catch (IrrecoverableValidationError e) {
+
+			noExceptions = false;
+		}
+		assertTrue(noExceptions);
+		tempFile = getResourceAsFile("ubl-tc434-creditnote1.xml");
+		try {
+			xv.setFilename(tempFile.getAbsolutePath());
+			xv.validate();
+
+			Source source = Input.fromString("<validation>" + xv.getXMLResult() + "</validation>").build();
+			String content = xpath.evaluate("/validation/summary/@status", source);
+			assertEquals("valid", content);
+
+
+		} catch (IrrecoverableValidationError e) {
+
+			noExceptions = false;
+		}
+		assertTrue(noExceptions);
+
+
+	}
+
+	public void testSubInvoiceLineHierarchy() {
+		final ValidationContext ctx = new ValidationContext(null);
+		final XMLValidator xv = new XMLValidator(ctx);
+		final XPathEngine xpath = new JAXPXPathEngine();
+
+		// test invalid hierarchy: GROUP sum does not match DETAIL children sum
+		// GROUP 01 has LineTotalAmount=999, but children sum to 1050 (600+450)
+		File tempFile = getResourceAsFile("invalidSubInvoiceLineHierarchy.xml");
+		try {
+			xv.setFilename(tempFile.getAbsolutePath());
+			xv.validate();
+
+			String s = "<validation>" + xv.getXMLResult() + "</validation>";
+			// hierarchy mismatch should produce at least one warning
+			assertThat(s).valueByXPath("count(//warning)")
+				.asInt()
+				.isGreaterThanOrEqualTo(1);
+
+		} catch (final IrrecoverableValidationError e) {
+			// ignore, will be in XML output anyway
+		}
+
+	}
 
 }

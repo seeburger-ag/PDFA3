@@ -22,18 +22,18 @@ package org.mustangproject.ZUGFeRD;
 
 import static org.mustangproject.ZUGFeRD.ZUGFeRDDateFormat.DATE;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import org.mustangproject.*;
+import org.mustangproject.EStandard;
+import org.mustangproject.FileAttachment;
+import org.mustangproject.Invoice;
+import org.mustangproject.XMLTools;
 
-public class DAPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider {
+public class DAPullProvider extends ZUGFeRD2PullProvider {
 
 	protected IExportableTransaction trans;
-	private String paymentTermsDescription;
 	protected Profile profile = Profiles.getByName(EStandard.despatchadvice,"pilot", 1);
 
 
@@ -79,7 +79,7 @@ public class DAPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 			if (currentItem.getProduct().getTaxExemptionReason() != null) {
 				//	exemptionReason = "<ram:ExemptionReason>" + XMLTools.encodeXML(currentItem.getProduct().getTaxExemptionReason()) + "</ram:ExemptionReason>";
 			}
-      final LineCalculator lc = new LineCalculator(currentItem);
+            final LineCalculator lc = currentItem.getCalculation();
 			xml += "<ram:IncludedSupplyChainTradeLineItem>" +
 					"<ram:AssociatedDocumentLineDocument>"
 					+ "<ram:LineID>" + lineID + "</ram:LineID>"
@@ -97,12 +97,12 @@ public class DAPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 						+ XMLTools.encodeXML(currentItem.getProduct().getBuyerAssignedID()) + "</ram:BuyerAssignedID>";
 			}
 			String allowanceChargeStr = "";
-			if (currentItem.getItemAllowances() != null && currentItem.getItemAllowances().length > 0) {
+			if (currentItem.getItemAllowances() != null) {
 				for (final IZUGFeRDAllowanceCharge allowance : currentItem.getItemAllowances()) {
 					allowanceChargeStr += getAllowanceChargeStr(allowance, currentItem);
 				}
 			}
-			if (currentItem.getItemCharges() != null && currentItem.getItemCharges().length > 0) {
+			if (currentItem.getItemCharges() != null) {
 				for (final IZUGFeRDAllowanceCharge charge : currentItem.getItemCharges()) {
 					allowanceChargeStr += getAllowanceChargeStr(charge, currentItem);
 
@@ -182,7 +182,7 @@ public class DAPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 		// Additional Documents of XRechnung (Rechnungsbegruendende Unterlagen - BG-24 XRechnung)
 		if (trans.getAdditionalReferencedDocuments() != null) {
 			for (final FileAttachment f : trans.getAdditionalReferencedDocuments()) {
-				final String documentContent = new String(Base64.getEncoder().encodeToString(f.getData()));
+				final String documentContent = Base64.getEncoder().encodeToString(f.getData());
 				xml += "<ram:AdditionalReferencedDocument>"
 						+ "<ram:IssuerAssignedID>" + f.getFilename() + "</ram:IssuerAssignedID>"
 						+ "<ram:TypeCode>916</ram:TypeCode>"
@@ -249,13 +249,9 @@ public class DAPullProvider extends ZUGFeRD2PullProvider implements IXMLProvider
 				+ "</SCRDMCCBDACIDAMessageStructure>";
 
 		final byte[] zugferdRaw;
-		try {
-			zugferdRaw = xml.getBytes("UTF-8");
+		zugferdRaw = xml.getBytes(StandardCharsets.UTF_8);
 
-			zugferdData = XMLTools.removeBOM(zugferdRaw);
-		} catch (final UnsupportedEncodingException e) {
-			Logger.getLogger(OXPullProvider.class.getName()).log(Level.SEVERE, null, e);
-		}
+		zugferdData = XMLTools.removeBOM(zugferdRaw);
 	}
 
 

@@ -36,5 +36,24 @@ public enum SubjectCode {
   /**
    * Discount and bonus agreements
    */
-  AAK
+  AAK,
+  /**
+   * Vehicle licence number
+   */
+  ABZ,
+	/**
+	* Payment information
+	*/
+	PMT,
+	/**
+	 * Payment detail/remittance information
+	 */
+	
+	PMD, 
+	/**
+	 * Payment term
+	 */
+	AAB 
+
+
 }

@@ -19,6 +19,7 @@ public abstract class Validator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Validator.class.getCanonicalName()); // log output
 	
 	protected ValidationContext context;
+	protected boolean autoload=true;
 	
 	public Validator(ValidationContext ctx){
 		this.context=ctx;
@@ -60,8 +61,10 @@ public abstract class Validator {
 		Source xmlData = new StreamSource(new ByteArrayInputStream(xmlRawData));
 		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 		try {
+			schemaFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 			Schema schema = schemaFactory.newSchema(schemaFile);
 			javax.xml.validation.Validator validator = schema.newValidator();
+			validator.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			validator.validate(xmlData);
 		} catch (SAXException e) {
 			context.addResultItem(new ValidationResultItem(ESeverity.error, "schema validation fails:" + e)
@@ -70,6 +73,15 @@ public abstract class Validator {
 			LOGGER.error(e.getMessage(), e);
 		}
 
+	}
+
+
+	public ValidationContext getValidationContext() {
+		return context;
+	}
+
+	public void setAutoload(boolean autoload) {
+		this.autoload = autoload;
 	}
 
 
