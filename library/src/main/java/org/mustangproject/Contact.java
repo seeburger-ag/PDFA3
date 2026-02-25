@@ -115,12 +115,6 @@ public class Contact implements IZUGFeRDExportableContact {
 				String localName = currentItemNode.getLocalName();
 				if (localName != null) {
 
-<<<<<<< HEAD
-					if (currentItemNode.getLocalName().equals("PersonName")/*CII*/||currentItemNode.getLocalName().equals("Name")/*UBL*/) {
-						setName(currentItemNode.getFirstChild().getNodeValue());
-					}
-					if (currentItemNode.getLocalName().equals("TelephoneUniversalCommunication")) { /*CII*/
-=======
 					Set<String> nameElements = Set.of("PersonName"/*CII*/, "Name"/*UBL*/);
 					if (localName != null && nameElements.contains(localName)
 						&& currentItemNode.getFirstChild()!=null) {
@@ -128,7 +122,6 @@ public class Contact implements IZUGFeRDExportableContact {
 						}
 
 					if (localName.equals("TelephoneUniversalCommunication")) { /*CII*/
->>>>>>> refs/remotes/origin/master
 						NodeList tel = currentItemNode.getChildNodes();
 						for (int telChildIndex = 0; telChildIndex < tel.getLength(); telChildIndex++) {
 							String telLocalName = tel.item(telChildIndex).getLocalName();
@@ -137,16 +130,9 @@ public class Contact implements IZUGFeRDExportableContact {
 								}
 
 						}
-<<<<<<< HEAD
-					} else if (currentItemNode.getLocalName().equals("Telephone")) { /* UBL */
-=======
 					} else if (localName.equals("Telephone")) { /* UBL */
->>>>>>> refs/remotes/origin/master
 						setPhone(currentItemNode.getTextContent());
 					}
-<<<<<<< HEAD
-					if (currentItemNode.getLocalName().equals("EmailURIUniversalCommunication")) { /* CII */
-=======
 
 					// CII: only for Extended profile
 					if (localName.equals("FaxUniversalCommunication")) { /* CII */
@@ -163,7 +149,6 @@ public class Contact implements IZUGFeRDExportableContact {
 					}
 
 					if (localName.equals("EmailURIUniversalCommunication")) { /* CII */
->>>>>>> refs/remotes/origin/master
 						NodeList email = currentItemNode.getChildNodes();
 						for (int emailChildIndex = 0; emailChildIndex < email.getLength(); emailChildIndex++) {
 							String emailLocalName = email.item(emailChildIndex).getLocalName();
@@ -172,11 +157,7 @@ public class Contact implements IZUGFeRDExportableContact {
 								}
 
 						}
-<<<<<<< HEAD
-					} else if (currentItemNode.getLocalName().equals("ElectronicMail")) { /* UBL */
-=======
 					} else if (localName.equals("ElectronicMail")) { /* UBL */
->>>>>>> refs/remotes/origin/master
 						setEMail(currentItemNode.getTextContent());
 					}
 				}

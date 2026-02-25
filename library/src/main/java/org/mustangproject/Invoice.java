@@ -591,11 +591,7 @@ public class Invoice implements IExportableTransaction {
 	}
 
 	@Override
-<<<<<<< HEAD
-    public TradeParty getRecipient() {
-=======
 	public TradeParty getRecipient() {
->>>>>>> refs/remotes/origin/master
 		return recipient;
 	}
 

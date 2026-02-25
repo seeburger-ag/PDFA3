@@ -53,14 +53,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-<<<<<<< HEAD
-import org.mustangproject.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-=======
->>>>>>> refs/remotes/origin/master
 
 public class ZUGFeRDInvoiceImporter {
 
@@ -385,8 +377,6 @@ public class ZUGFeRDInvoiceImporter {
 			zpp.setDeliveryAddress(new TradeParty(deliveryNodes));
 		}
 
-<<<<<<< HEAD
-=======
 		List<IncludedNote> includedNotes = new ArrayList<>();
 
 		//UBL...
@@ -442,7 +432,6 @@ public class ZUGFeRDInvoiceImporter {
 		}
 
 
->>>>>>> refs/remotes/origin/master
 		xpr = xpath.compile("//*[local-name()=\"BuyerTradeParty\"]|//*[local-name()=\"AccountingCustomerParty\"]/*");
 		NodeList BuyerNodes = (NodeList) xpr.evaluate(getDocument(), XPathConstants.NODESET);
 
@@ -619,24 +608,6 @@ public class ZUGFeRDInvoiceImporter {
 				}
 			}
 		}
-<<<<<<< HEAD
-		String rootNode = extractString("local-name(/*)");
-		if (rootNode.equals("Invoice")) {
-			// UBL...
-			number = extractString("//*[local-name()=\"Invoice\"]/*[local-name()=\"ID\"]").trim();
-			issueDate = new SimpleDateFormat("yyyy-MM-dd")
-				.parse(extractString("//*[local-name()=\"Invoice\"]/*[local-name()=\"IssueDate\"]").trim());
-			String dueDt = extractString("//*[local-name()=\"Invoice\"]/*[local-name()=\"DueDate\"]").trim();
-			if (dueDt.length() > 0) {
-				dueDate = new SimpleDateFormat("yyyy-MM-dd")
-					.parse(dueDt);
-			}
-			String deliveryDt = extractString("//*[local-name()=\"Delivery\"]/*[local-name()=\"ActualDeliveryDate\"]").trim();
-			if (deliveryDt.length() > 0) {
-				deliveryDate = new SimpleDateFormat("yyyy-MM-dd")
-					.parse(deliveryDt);
-			}
-=======
 		zpp.addNotes(includedNotes);
 		String rootNode = extractString("local-name(/*)");
 		String potentialCashDiscountTerms=null;
@@ -674,7 +645,6 @@ public class ZUGFeRDInvoiceImporter {
 			//CII
 			potentialCashDiscountTerms = extractString("//*[local-name()=\"SpecifiedTradePaymentTerms\"]/*[local-name()=\"Description\"]").trim();
 
->>>>>>> refs/remotes/origin/master
 		}
 
 		String creditorReferenceID = extractString("//*[local-name()=\"ApplicableHeaderTradeSettlement\"]/*[local-name()=\"CreditorReferenceID\"]").trim();//BT-90
@@ -838,14 +808,10 @@ public class ZUGFeRDInvoiceImporter {
 
 		xpr = xpath.compile("//*[local-name()=\"ApplicableHeaderTradeSettlement\"]|//*[local-name()=\"ApplicableSupplyChainTradeSettlement\"]");
 		NodeList headerTradeSettlementNodes = (NodeList) xpr.evaluate(getDocument(), XPathConstants.NODESET);
-<<<<<<< HEAD
-		String IBAN = null, BIC = null;
-=======
 		List<BankDetails> bankDetails = new ArrayList<>();
 		String directDebitMandateID = null;
 		String IBAN = null, BIC = null, paymentMeansCode = null, paymentMeansInformation = null;
 		String accountName = null;
->>>>>>> refs/remotes/origin/master
 
 		for (int i = 0; i < headerTradeSettlementNodes.getLength(); i++) {
 			// XMLTools.trimOrNull(nodes.item(i)))) {
@@ -953,75 +919,9 @@ public class ZUGFeRDInvoiceImporter {
 						}
 					}
 				}
-
-				if ((headerTradeSettlementChilds.item(settlementChildIndex).getLocalName() != null)
-					&& (headerTradeSettlementChilds.item(settlementChildIndex).getLocalName()
-					.equals("SpecifiedTradeSettlementPaymentMeans"))) {
-					NodeList paymentMeansChilds = headerTradeSettlementChilds.item(settlementChildIndex).getChildNodes();
-					for (int paymentMeansChildIndex = 0; paymentMeansChildIndex < paymentMeansChilds
-						.getLength(); paymentMeansChildIndex++) {
-						if ((paymentMeansChilds.item(paymentMeansChildIndex).getLocalName() != null) && (paymentMeansChilds
-							.item(paymentMeansChildIndex).getLocalName().equals("PayeePartyCreditorFinancialAccount"))) {
-							NodeList accountChilds = paymentMeansChilds.item(paymentMeansChildIndex).getChildNodes();
-							for (int accountChildIndex = 0; accountChildIndex < accountChilds
-								.getLength(); accountChildIndex++) {
-								if ((accountChilds.item(accountChildIndex).getLocalName() != null) && (accountChilds
-									.item(accountChildIndex).getLocalName().equals("IBANID"))) {//CII
-									IBAN = accountChilds.item(accountChildIndex).getTextContent();
-								}
-							}
-						}
-						if ((paymentMeansChilds.item(paymentMeansChildIndex).getLocalName() != null) && (paymentMeansChilds
-							.item(paymentMeansChildIndex).getLocalName().equals("PayeePartyCreditorFinancialInstitution"))) {
-							NodeList accountChilds = paymentMeansChilds.item(paymentMeansChildIndex).getChildNodes();
-							for (int accountChildIndex = 0; accountChildIndex < accountChilds
-								.getLength(); accountChildIndex++) {
-								if ((accountChilds.item(accountChildIndex).getLocalName() != null) && (accountChilds
-									.item(accountChildIndex).getLocalName().equals("BICID"))) {//CII
-									BIC = accountChilds.item(accountChildIndex).getTextContent();
-								}
-							}
-						}
-					}
-				}
 			}
 		}
 
-
-		xpr = xpath.compile("//*[local-name()=\"PaymentMeans\"]"); //UBL only
-		NodeList paymentMeansNodes = (NodeList) xpr.evaluate(getDocument(), XPathConstants.NODESET);
-
-		for (int i = 0; i < paymentMeansNodes.getLength(); i++) {
-			// nodes.item(i).getTextContent())) {
-			Node paymentMeansNode = paymentMeansNodes.item(i);
-			NodeList paymentMeansChilds = paymentMeansNode.getChildNodes();
-			for (int meansChildIndex = 0; meansChildIndex < paymentMeansChilds
-				.getLength(); meansChildIndex++) {
-				if ((paymentMeansChilds.item(meansChildIndex).getLocalName() != null)
-					&& (paymentMeansChilds.item(meansChildIndex).getLocalName()
-					.equals("PayeeFinancialAccount"))) {
-					NodeList paymentTermChilds = paymentMeansChilds.item(meansChildIndex).getChildNodes();
-					for (int paymentTermChildIndex = 0; paymentTermChildIndex < paymentTermChilds
-						.getLength(); paymentTermChildIndex++) {
-						if ((paymentTermChilds.item(paymentTermChildIndex).getLocalName() != null) && (paymentTermChilds
-							.item(paymentTermChildIndex).getLocalName().equals("ID"))) {
-							IBAN = paymentTermChilds.item(paymentTermChildIndex).getTextContent();
-						}
-					}
-				}
-			}
-		}
-
-<<<<<<< HEAD
-		zpp.setDueDate(dueDate).setDeliveryDate(deliveryDate).setIssueDate(issueDate)
-			.setSender(new TradeParty(SellerNodes)).setRecipient(new TradeParty(BuyerNodes)).setNumber(number);
-		if (IBAN != null) {
-			BankDetails bd = new BankDetails(IBAN);
-			if (BIC != null) {
-				bd.setBIC(BIC);
-			}
-			zpp.getSender().addBankDetails(bd);
-=======
 		xpr = xpath.compile("/*[local-name()=\"Invoice\"]/*[local-name()=\"InvoicePeriod\"]/*"); //UBL only
 		NodeList periodNodes = (NodeList) xpr.evaluate(getDocument(), XPathConstants.NODESET);
 
@@ -1126,7 +1026,6 @@ public class ZUGFeRDInvoiceImporter {
 
 		if (payeeNodes.getLength() > 0) {
 			zpp.setPayee(new TradeParty(payeeNodes));
->>>>>>> refs/remotes/origin/master
 		}
 
 		if (buyerOrderIssuerAssignedID != null) {

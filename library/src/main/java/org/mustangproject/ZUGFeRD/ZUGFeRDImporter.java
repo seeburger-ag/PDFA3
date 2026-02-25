@@ -13,21 +13,9 @@ package org.mustangproject.ZUGFeRD;
  * @version 1.1.0
  * @author jstaerk
  */
-<<<<<<< HEAD
-
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-=======
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
->>>>>>> refs/remotes/origin/master
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -36,23 +24,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
-<<<<<<< HEAD
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
-import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
-import org.apache.pdfbox.pdmodel.common.PDNameTreeNode;
-import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
-import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
-import org.mustangproject.EStandard;
-import org.mustangproject.Item;
-import org.mustangproject.Product;
-import org.mustangproject.XMLTools;
-import org.w3c.dom.Document;
-=======
 import org.mustangproject.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
->>>>>>> refs/remotes/origin/master
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -67,66 +41,8 @@ public class ZUGFeRDImporter extends ZUGFeRDInvoiceImporter {
 		super(filename);
 	}
 
-<<<<<<< HEAD
-
-	/**
-	 * Extracts a ZUGFeRD invoice from a PDF document represented by an input stream. Errors are reported via exception handling.
-	 *
-	 * @param inStream a inputstream of a pdf file
-	 */
-	private void extractLowLevel(InputStream inStream) throws IOException {
-		BufferedInputStream pdfStream=new BufferedInputStream(inStream);
-		byte[] pad = new byte[4];
-		pdfStream.mark(0);
-		pdfStream.read(pad);
-		pdfStream.reset();
-		byte[] pdfSignature = { '%', 'P', 'D', 'F' };
-		if (pad.equals(pdfSignature)) { // we have a pdf
-
-
-		try (PDDocument doc = PDDocument.load(pdfStream)) {
-			// PDDocumentInformation info = doc.getDocumentInformation();
-			final PDDocumentNameDictionary names = new PDDocumentNameDictionary(doc.getDocumentCatalog());
-			//start
-
-			if (doc.getDocumentCatalog() == null || doc.getDocumentCatalog().getMetadata() == null) {
-				Logger.getLogger(ZUGFeRDImporter.class.getName()).log(Level.INFO, "no-xmlpart");
-				return;
-			}
-
-			final InputStream XMP = doc.getDocumentCatalog().getMetadata().exportXMPMetadata();
-			xmpString = convertStreamToString(XMP);
-
-			final PDEmbeddedFilesNameTreeNode etn = names.getEmbeddedFiles();
-			if (etn == null) {
-				return;
-			}
-
-			final Map<String, PDComplexFileSpecification> efMap = etn.getNames();
-			// String filePath = "/tmp/";
-
-			if (efMap != null) {
-				extractFiles(efMap); // see
-				// https://memorynotfound.com/apache-pdfbox-extract-embedded-file-pdf-document/
-			} else {
-
-				final List<PDNameTreeNode<PDComplexFileSpecification>> kids = etn.getKids();
-				for (final PDNameTreeNode<PDComplexFileSpecification> node : kids) {
-					final Map<String, PDComplexFileSpecification> namesL = node.getNames();
-					extractFiles(namesL);
-				}
-			}
-		}
-		} else {
-			// no PDF probably XML
-			containsMeta = true;
-			setRawXML(XMLTools.getBytesFromStream(pdfStream));
-
-		}
-=======
 	public ZUGFeRDImporter(InputStream stream) {
 		super(stream);
->>>>>>> refs/remotes/origin/master
 	}
 
 
