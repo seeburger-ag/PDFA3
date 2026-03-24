@@ -7,9 +7,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
+import javax.xml.XMLConstants;
+
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.URIResolver;
@@ -32,6 +35,15 @@ public class XMLUpgrader {
 
 	public XMLUpgrader() {
 		mFactory = new net.sf.saxon.TransformerFactoryImpl();
+
+		try {
+		    mFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+		    mFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+		    mFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+		} catch (IllegalArgumentException | TransformerConfigurationException e) {
+		    throw new RuntimeException("Could not configure secure XML transformer", e);
+		}
+
 		//fact = TransformerFactory.newInstance();
 		mFactory.setURIResolver(new ClasspathResourceURIResolver());
 	}
